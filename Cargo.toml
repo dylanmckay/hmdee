@@ -1,0 +1,8 @@
+[package]
+name = "psvr"
+version = "0.1.0"
+authors = ["Dylan McKay <me@dylanmckay.io>"]
+
+[dependencies]
+libusb = "0.3"
+byteorder = "1.1"
