@@ -7,6 +7,8 @@ pub use self::errors::{Error, ErrorKind, ResultExt};
 
 pub mod protocol;
 pub mod usb;
+pub mod command;
+pub mod sensor;
 
 mod errors;
 

@@ -1,3 +1,4 @@
+//! The low-level protocol types.
 
 /// The size of the command header.
 pub const COMMAND_HEADER_SIZE: usize = 4;

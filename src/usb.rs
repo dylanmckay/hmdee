@@ -1,8 +1,5 @@
-pub mod command;
-pub mod sensor;
-
 use {Error, ResultExt};
-use protocol;
+use {command, protocol, sensor};
 
 use std::ptr;
 use std;
@@ -245,12 +242,7 @@ impl<'a> Psvr<'a> {
 
     /// Sets whether the VR is powered or not.
     pub fn set_power(&mut self, on: bool) -> Result<(), Error> {
-        self.send_command(&command::SetPower::new(on))
-    }
-
-    /// Enables VR mode.
-    pub fn enable_vr_mode(&mut self) -> Result<(), Error> {
-        self.send_command(&command::EnableVrMode)
+        self.send_command(&command::SetPower { on })
     }
 
     fn config_desc(&self) -> libusb::ConfigDescriptor {

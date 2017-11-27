@@ -28,7 +28,6 @@ fn run() -> Result<(), psvr::Error> {
     psvr.print_information()?;
 
     psvr.set_power(true).chain_err(|| "failed to set power to true")?;
-    psvr.enable_vr_mode().chain_err(|| "failed to enable VR mode")?;
 
     for _ in 0..600 {
         thread::sleep(time::Duration::from_millis(30));
