@@ -5,3 +5,8 @@ rust:
   - beta
   - nightly
 
+addons:
+  apt:
+    packages:
+    - libusb-dev
+
