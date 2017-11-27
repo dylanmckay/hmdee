@@ -3,6 +3,16 @@ name = "psvr"
 version = "0.1.0"
 authors = ["Dylan McKay <me@dylanmckay.io>"]
 
+description = "Library for interfacing with the PlayStation VR"
+documentation = "http://docs.rs/psvr"
+repository = "https://github.com/dylanmckay/psvr"
+
+readme = "README.md"
+license = "MIT"
+
+categories = ["game-engines"]
+keywords = ["vr", "virtual", "reality", "playstation", "hmd"]
+
 [dependencies]
 libusb = "0.3"
 byteorder = "1.1"
