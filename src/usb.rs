@@ -7,9 +7,12 @@ use std::time::Duration;
 
 use libusb;
 
-pub const PSVR_VID: u16 = 0x054c;
-pub const PSVR_PID: u16 = 0x09af;
+/// The vendor ID of the PSVR.
+const PSVR_VID: u16 = 0x054c;
+/// The product ID of the PSVR.
+const PSVR_PID: u16 = 0x09af;
 
+/// The byte ordering used by the PSVR.
 pub type ByteOrder = ::byteorder::LittleEndian;
 
 #[allow(dead_code)]
@@ -38,14 +41,6 @@ pub struct Psvr<'a> {
     device: libusb::Device<'a>,
     device_desc: libusb::DeviceDescriptor,
     handle: libusb::DeviceHandle<'a>,
-}
-
-#[derive(Debug)]
-pub struct Endpoint {
-    config: u8,
-    iface: u8,
-    setting: u8,
-    address: u8
 }
 
 /// Get an iterator over all PSVRs on the system.

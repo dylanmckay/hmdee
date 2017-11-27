@@ -1,3 +1,5 @@
+//! The sensor protocol.
+
 use Error;
 use usb::ByteOrder;
 
