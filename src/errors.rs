@@ -4,11 +4,14 @@ error_chain! {
     }
 
     foreign_links {
-        Usb(::libusb::Error);
         Io(::std::io::Error);
     }
 
     errors {
+        Hid(e: ::hidapi::HidError) {
+            description("usb hid error")
+            display("usb hid error: {}", e)
+        }
     }
 }
 

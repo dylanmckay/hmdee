@@ -1,7 +1,7 @@
 extern crate byteorder;
 #[macro_use]
 extern crate error_chain;
-extern crate libusb;
+extern crate hidapi;
 
 pub use self::errors::{Error, ErrorKind, ResultExt};
 

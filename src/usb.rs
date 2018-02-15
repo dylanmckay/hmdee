@@ -1,11 +1,9 @@
-use {Error, ResultExt};
+use {Error, ErrorKind, ResultExt};
 use {command, protocol, sensor};
 
-use std::ptr;
 use std;
-use std::time::Duration;
 
-use libusb;
+use hidapi;
 
 /// The vendor ID of the PSVR.
 const PSVR_VID: u16 = 0x054c;
@@ -37,26 +35,23 @@ mod usb_interfaces {
 
 /// A PSVR USB device.
 pub struct Psvr<'a> {
-    context: &'a libusb::Context,
-    device: libusb::Device<'a>,
-    device_desc: libusb::DeviceDescriptor,
-    handle: libusb::DeviceHandle<'a>,
+    device: hidapi::HidDevice<'a>,
 }
 
 /// Get an iterator over all PSVRs on the system.
-pub fn iter(context: &libusb::Context) -> Result<Iter, Error> {
-    let devices: Vec<_> = context.devices()?.iter().collect();
-
+pub fn iter(hidapi: &hidapi::HidApi) -> Result<Iter, Error> {
     Ok(Iter {
-        context: context,
-        devices: devices.into_iter(),
+        hidapi,
+        device_infos: hidapi.devices().into_iter(),
+        _phantom: std::marker::PhantomData,
     })
 }
 
 /// An iterator over PSVR USB devices.
 pub struct Iter<'a> {
-    context: &'a libusb::Context,
-    devices: std::vec::IntoIter<libusb::Device<'a>>,
+    hidapi: &'a hidapi::HidApi,
+    device_infos: std::vec::IntoIter<hidapi::HidDeviceInfo>,
+    _phantom: std::marker::PhantomData<&'a ()>,
 }
 
 impl<'a> Iterator for Iter<'a> {
@@ -64,16 +59,14 @@ impl<'a> Iterator for Iter<'a> {
 
     fn next(&mut self) -> Option<Result<Psvr<'a>, Error>> {
         loop {
-            match self.devices.next() {
-                Some(device) => {
-                    let device_desc = match device.device_descriptor() {
-                        Ok(device) => device,
-                        Err(_) => continue
-                    };
+            match self.device_infos.next() {
+                Some(device_info) => {
 
-                    if device_desc.vendor_id() == PSVR_VID &&
-                        device_desc.product_id() == PSVR_PID {
-                        break Some(Psvr::open(self.context, device, device_desc));
+                    if device_info.vendor_id == PSVR_VID &&
+                        device_info.product_id == PSVR_PID {
+                        println!("dev info: {:#?}", device_info);
+                        let device = self.hidapi.open_path(&device_info.path).unwrap(); // FIXME: remove unwrap.
+                        break Some(Psvr::new(device));
                     }
                 },
                 None => break None,
@@ -83,35 +76,19 @@ impl<'a> Iterator for Iter<'a> {
 }
 
 impl<'a> Psvr<'a> {
-    /// Opens a PSVR device.
-    pub fn open(context: &'a libusb::Context,
-            device: libusb::Device<'a>,
-            device_desc: libusb::DeviceDescriptor) -> Result<Self, Error> {
-        let handle = device.open()?;
+    pub fn open(hidapi: &'a hidapi::HidApi) -> Result<Option<Self>, Error> {
+        let device = hidapi.open(PSVR_VID, PSVR_PID).unwrap();
+        Psvr::new(device).map(Some)
+    }
 
-        let mut psvr = Psvr {
-            context, device, device_desc, handle,
-        };
-        psvr.initialize()?;
-
-        Ok(psvr)
+    /// Creates a PSVR device.
+    fn new(device: hidapi::HidDevice<'a>) -> Result<Self, Error> {
+        Ok(Psvr { device })
     }
 
     /// Prints information about the usb device to stdout.
     pub fn print_information(&self) -> Result<(), Error> {
-        let timeout = Duration::from_secs(1);
-        let languages = self.handle.read_languages(timeout)?;
-
-        println!("Active configuration: {}", self.handle.active_configuration()?);
-        println!("Languages: {:?}", languages);
-
-        if languages.len() > 0 {
-            let language = languages[0];
-
-            println!("Manufacturer: {:?}", self.handle.read_manufacturer_string(language, &self.device_desc, timeout).ok());
-            println!("Product: {:?}", self.handle.read_product_string(language, &self.device_desc, timeout).ok());
-            println!("Serial Number: {:?}", self.handle.read_serial_number_string(language, &self.device_desc, timeout).ok());
-        }
+        // unimplemented!();
 
         Ok(())
     }
@@ -121,16 +98,6 @@ impl<'a> Psvr<'a> {
                            command: &C) -> Result<(), Error>
         where C: command::Command {
         let payload = command.payload_bytes();
-
-        assert!(payload.len() <= protocol::COMMAND_PAYLOAD_SIZE,
-                "command payload too large for protocol");
-
-        // Convert payload from slice to array.
-        let mut temp_payload = [0; protocol::COMMAND_PAYLOAD_SIZE];
-        unsafe {
-            ptr::copy(payload.as_ptr(), temp_payload.as_mut_ptr(), 1);
-        }
-        let payload = temp_payload;
 
         // Build command with specified ID and payload.
         let command = protocol::Command {
@@ -142,97 +109,55 @@ impl<'a> Psvr<'a> {
             },
             payload: payload,
         };
-        let raw_command = unsafe { ::std::slice::from_raw_parts(
-                &command as *const _ as *const u8,
-                ::std::mem::size_of_val(&command))
-        };
 
-        self.send_raw(raw_command).chain_err(|| "could not send command")
-    }
+        let raw_command = command.raw_bytes();
 
-    /// Initialises the PSVR.
-    fn initialize(&mut self) -> Result<(), Error> {
-        self.handle.reset()?;
-
-        let config_desc = self.config_desc();
-
-        for &interface_number in usb_interfaces::INTERFACES_TO_CLAIM {
-            let interface = config_desc.interfaces()
-                .nth(interface_number as usize)
-                .expect("could not find interface");
-
-            match self.handle.kernel_driver_active(interface.number()) {
-                Ok(true) => if self.context.supports_detach_kernel_driver() {
-                    self.handle.detach_kernel_driver(interface.number()).ok();
-                } else {
-                    eprintln!("cannot detach the kernel driver on this platform");
-                },
-                _ => ()
-            }
-        }
-
-        // FIXME: do this once we're done with the endpoint fully (outside of this function).
-        // if has_kernel_driver {
-        //     self.handle.attach_kernel_driver(endpoint.iface).ok();
-        // }
-
-        Ok(())
+        println!("sending raw {:?}", raw_command);
+        self.send_raw(&raw_command).chain_err(|| "could not send command")
     }
 
     /// Sends raw data.
     fn send_raw(&mut self,
                 data: &[u8]) -> Result<(), Error> {
-        let timeout = Duration::from_secs(1);
+        let mut raw = data.to_owned();
+        // Add zero for the report ID.
+        raw.insert(0, 0);
 
-        let config_desc = self.config_desc();
-
-        let interface = config_desc.interfaces()
-            .nth(usb_interfaces::HID_CONTROL as usize)
-            .expect("could not find interface");
-
-        let interface_desc = interface.descriptors()
-            .next()
-            .expect("could not find interface descriptor");
-
-        let endpoint_desc = interface_desc.endpoint_descriptors()
-            .filter(|e| e.direction() == libusb::Direction::Out)
-            .next()
-            .expect("could not get endpoint desc");
-
-        self.handle.write_bulk(endpoint_desc.address(), data, timeout)?;
+        self.device.write(&raw)?;
         Ok(())
     }
 
     pub fn receive_sensor(&mut self) -> Result<sensor::Frame, Error> {
         use self::sensor::Readable;
 
-        let timeout = Duration::from_secs(1);
+        loop {
+            let mut buf: [u8; sensor::FRAME_SIZE] = [0; 64];
+            let bytes_read = match self.device.read_timeout(&mut buf, 1) {
+                Ok(bytes_read) => bytes_read,
+                Err(e) => {
+                    let err: Error = ErrorKind::Hid(e).into();
+                    return Err(err).chain_err(|| "could not read from device");
+                },
+            };
 
-        let config_desc = self.config_desc();
+            if bytes_read > 0 {
+                panic!("bytes read: {:?}", bytes_read);
+            }
 
-        let interface = config_desc.interfaces()
-            .nth(usb_interfaces::HID_SENSOR as usize)
-            .expect("could not find interface");
+            // Remove report ID byte from raw data.
+            for i in 1..bytes_read {
+                buf[i-1] = buf[i];
+            }
 
-        let interface_desc = interface.descriptors()
-            .next()
-            .expect("could not find interface descriptor");
+            if bytes_read <= 1 {
+                continue; // We need more than the report ID.
+            } if bytes_read != sensor::FRAME_SIZE {
+                panic!("not enough bytes read of sensor frame (expected {} bytes but got {} bytes)", sensor::FRAME_SIZE, bytes_read);
+            }
 
-        let endpoint_desc = interface_desc.endpoint_descriptors()
-            .filter(|e| e.direction() == libusb::Direction::In)
-            .next()
-            .expect("could not get endpoint desc");
-
-        let mut buf: [u8; sensor::FRAME_SIZE] = [0; sensor::FRAME_SIZE];
-        let bytes_read = self.handle.read_interrupt(endpoint_desc.address(), &mut buf, timeout).chain_err(|| "could not read from device")?;
-
-        if bytes_read != sensor::FRAME_SIZE {
-            panic!("not enough bytes read of sensor frame");
+            let frame = sensor::Frame::read_bytes(&buf)?;
+            return Ok(frame);
         }
-
-        let frame = sensor::Frame::read_bytes(&mut buf)?;
-
-        Ok(frame)
     }
 
     /// Sets whether the VR is powered or not.
@@ -240,8 +165,8 @@ impl<'a> Psvr<'a> {
         self.send_command(&command::SetPower { on })
     }
 
-    fn config_desc(&self) -> libusb::ConfigDescriptor {
-        self.device.config_descriptor(0).expect("could not get first config descriptor")
+    pub fn vr_tracking(&mut self) -> Result<(), Error> {
+        self.send_command(&command::EnableVrTracking)
     }
 }
 
