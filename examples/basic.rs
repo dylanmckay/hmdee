@@ -1,5 +1,5 @@
 extern crate psvr;
-extern crate libusb;
+extern crate hidapi;
 
 use psvr::ResultExt;
 use std::{thread, time, process};
@@ -15,28 +15,36 @@ fn main() {
 }
 
 fn run() -> Result<(), psvr::Error> {
-    let libusb = libusb::Context::new().chain_err(|| "could not initialize libusb")?;
-    // libusb.set_log_level(libusb::LogLevel::Debug);
+    let hidapi = hidapi::HidApi::new().unwrap();
 
-    let mut psvr = match psvr::usb::iter(&libusb).chain_err(|| "failed to discover psvr devices")?.next() {
-        Some(Ok(psvr)) => psvr,
-        Some(Err(e)) => return Err(e),
+    for foo in psvr::iter(&hidapi).unwrap() {
+    }
+
+    let mut psvr = match psvr::get(&hidapi)? {
+        Some(psvr) => psvr,
         None => return Err("no PSVR devices connected".into()),
     };
 
-    println!("discovered PSVR device!");
-    psvr.print_information()?;
+    psvr.power_on()?;
 
-    psvr.set_power(true).chain_err(|| "failed to set power to true")?;
+    // println!("discovered PSVR device, printing information");
+    // psvr.print_information()?;
 
-    for _ in 0..600 {
-        thread::sleep(time::Duration::from_millis(30));
+    // println!("Enabling VR tracking");
+    // psvr.vr_tracking().chain_err(|| "failed to enable VR tracking")?;
+
+    thread::sleep(time::Duration::from_millis(100));
+    println!("starting to read from sensors");
+
+    for _ in 0..200 {
         let sensor_frame = psvr.receive_sensor().expect("failed to receive from sensor");
+        thread::sleep(time::Duration::from_millis(20));
 
-        println!("{:?}", sensor_frame.status);
+        println!("{:?}", sensor_frame.instants[0]);
     }
 
-    psvr.set_power(false).chain_err(|| "failed to set power to false")?;
+    println!("finished reading from sensors");
+    psvr.close()?;
     Ok(())
 }
 
