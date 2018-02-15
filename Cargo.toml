@@ -16,6 +16,8 @@ keywords = ["vr", "virtual", "reality", "playstation", "hmd"]
 [dependencies]
 byteorder = "1.1"
 error-chain = "0.11"
-# hidapi = "0.4"
-hidapi = { path = "../hidapi-rs" }
+# Required to work around missing interface number support on Mac.
+# Going back to crates.io blocked on this pull request.
+# https://github.com/signal11/hidapi/pull/380
+hidapi = { git = "https://github.com/dylanmckay/hidapi-rs.git", branch = "mac-hid-interface-support" }
 
