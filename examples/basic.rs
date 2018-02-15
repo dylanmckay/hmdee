@@ -17,13 +17,13 @@ fn main() {
 fn run() -> Result<(), psvr::Error> {
     let hidapi = hidapi::HidApi::new().unwrap();
 
+    for foo in psvr::usb::iter(&hidapi).unwrap() {
+    }
+
     let mut psvr = match psvr::usb::Psvr::open(&hidapi)? {
         Some(psvr) => psvr,
         None => return Err("no PSVR devices connected".into()),
     };
-
-    for foo in psvr::usb::iter(&hidapi).unwrap() {
-    }
 
     println!("discovered PSVR device, printing information");
     psvr.print_information()?;

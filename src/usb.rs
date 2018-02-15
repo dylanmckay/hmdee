@@ -58,13 +58,13 @@ impl<'a> Iterator for Iter<'a> {
     type Item = Result<Psvr<'a>, Error>;
 
     fn next(&mut self) -> Option<Result<Psvr<'a>, Error>> {
+        println!("dev info: {:#?}", self.device_infos);
         loop {
             match self.device_infos.next() {
                 Some(device_info) => {
 
                     if device_info.vendor_id == PSVR_VID &&
                         device_info.product_id == PSVR_PID {
-                        println!("dev info: {:#?}", device_info);
                         let device = self.hidapi.open_path(&device_info.path).unwrap(); // FIXME: remove unwrap.
                         break Some(Psvr::new(device));
                     }
