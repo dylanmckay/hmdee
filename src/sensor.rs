@@ -8,7 +8,7 @@ use std::{cmp, fmt, io};
 use byteorder::ReadBytesExt;
 use na;
 
-pub type Scalar = i16;
+pub type Scalar = f64;
 
 /// The sensor frame size.
 pub const FRAME_SIZE: usize = 64;
@@ -47,18 +47,34 @@ pub struct Status {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Orientation {
-    pub yaw: Scalar,
-    pub pitch: Scalar,
-    pub roll: Scalar,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Instant {
     /// The gyroscope readout.
-    pub gyroscope: na::Vector3<i16>,
+    pub gyroscope_raw: na::Vector3<i16>,
     /// The accelerometer readout.
-    pub accelerometer: na::Vector3<i16>,
+    pub accelerometer_raw: na::Vector3<i16>,
+}
+
+impl Instant {
+    pub fn accelerometer(&self) -> na::Vector3<Scalar> {
+        let f = |c| {
+            -(c as f64 / 32768.0) * 16.0
+        };
+
+        na::Vector3::new(f(self.accelerometer_raw.x),
+                         f(self.accelerometer_raw.y),
+                         f(-self.accelerometer_raw.z))
+    }
+
+    pub fn gyroscope(&self) -> na::Vector3<Scalar> {
+        let f = |c| {
+            (c as Scalar / 32768.0) * 2000.0
+                * (::std::f64::consts::PI / 180.0) // DEGTORAD
+        };
+
+        na::Vector3::new(f(self.gyroscope_raw.x),
+                         f(self.gyroscope_raw.y),
+                         f(-self.gyroscope_raw.z))
+    }
 }
 
 	// struct {
@@ -155,16 +171,6 @@ impl Readable for Status {
     }
 }
 
-impl Readable for Orientation {
-    fn read(read: &mut Read) -> Result<Self, Error> {
-        Ok(Orientation {
-            yaw: read.read_i16::<ByteOrder>()?,
-            pitch: read.read_i16::<ByteOrder>()?,
-            roll: read.read_i16::<ByteOrder>()?,
-        })
-    }
-}
-
 impl<T> Readable for na::Vector3<T>
     where T: Copy + Readable + fmt::Debug + cmp::PartialEq + 'static{
     fn read(read: &mut Read) -> Result<Self, Error> {
@@ -178,11 +184,11 @@ impl<T> Readable for na::Vector3<T>
 
 impl Readable for Instant {
     fn read(read: &mut Read) -> Result<Self, Error> {
-        let gyroscope = Readable::read(read)?;
-        let accelerometer = Readable::read(read)?;
+        let gyroscope_raw = Readable::read(read)?;
+        let accelerometer_raw = Readable::read(read)?;
         read_reserved(read, 4)?;
 
-        Ok(Instant { gyroscope, accelerometer })
+        Ok(Instant { gyroscope_raw, accelerometer_raw })
     }
 }
 

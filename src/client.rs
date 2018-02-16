@@ -138,7 +138,7 @@ impl<'a> Psvr<'a> {
             let frame = sensor::Frame::read_bytes(&buf)?;
 
             for instant in frame.instants.iter() {
-                let (g,a) = (instant.gyroscope, instant.accelerometer);
+                let (g,a) = (instant.gyroscope(), instant.accelerometer());
 
                 self.inertia_sensor.update(&inertia::Instant {
                     gyroscope: na::Vector3::new(g.x as _, g.y as _, g.z as _),

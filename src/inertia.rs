@@ -19,7 +19,7 @@ const SAMPLE_FREQUENCY: u32 = 120;
 /// How many seconds inbetween samples.
 const SAMPLE_PERIOD: f32 = 1.0 / SAMPLE_FREQUENCY as f32;
 /// The Madgwick beta constant for the PSVR.
-const MADGWICK_BETA: f32 = 0.025;
+const MADGWICK_BETA: f32 = 1.5;
 
 /// Inertia information at a point in time.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
