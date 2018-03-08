@@ -1,5 +1,6 @@
 extern crate ahrs;
 extern crate byteorder;
+extern crate delta;
 #[macro_use]
 extern crate error_chain;
 extern crate hidapi;

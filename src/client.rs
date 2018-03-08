@@ -137,7 +137,8 @@ impl<'a> Psvr<'a> {
 
             let frame = sensor::Frame::read_bytes(&buf)?;
 
-            for instant in frame.instants.iter() {
+            // FIXME: perhaps we should interpolate between the things?
+            for instant in frame.instants.iter().take(1) {
                 let (g,a) = (instant.gyroscope(), instant.accelerometer());
 
                 self.inertia_sensor.update(&inertia::Instant {

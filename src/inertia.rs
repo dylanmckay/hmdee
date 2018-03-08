@@ -13,13 +13,14 @@
 
 use math::{Quaternion, Scalar, Vector3};
 use ahrs::{self, Ahrs};
+use delta;
 
 /// How many samples are taken per second.
 const SAMPLE_FREQUENCY: u32 = 120;
 /// How many seconds inbetween samples.
 const SAMPLE_PERIOD: f32 = 1.0 / SAMPLE_FREQUENCY as f32;
 /// The Madgwick beta constant for the PSVR.
-const MADGWICK_BETA: f32 = 1.5;
+const MADGWICK_BETA: f32 = 0.025;
 
 /// Inertia information at a point in time.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -35,6 +36,8 @@ pub struct Instant {
 pub struct Sensor {
     /// The Madgwick AHRS implementation.
     madgwick: ahrs::Madgwick<Scalar>,
+    /// The timer.
+    timer: delta::Timer,
 }
 
 impl Sensor {
@@ -42,11 +45,17 @@ impl Sensor {
     pub fn new() -> Self {
         Sensor {
             madgwick: ahrs::Madgwick::new(SAMPLE_PERIOD, MADGWICK_BETA),
+            timer: delta::Timer::new(),
         }
     }
 
     /// Updates the inertia sensor.
     pub fn update(&mut self, instant: &Instant) {
+        let delta = self.timer.mark();
+        let delta = 1.0/120.0;
+
+        println!("delta: {}", delta);
+
         self.madgwick.update_imu(
             &instant.gyroscope.into(),
             &instant.accelerometer.into(),
