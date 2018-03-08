@@ -124,10 +124,6 @@ impl<'a> Psvr<'a> {
                 },
             };
 
-            // Remove report ID byte from raw data.
-            for i in 1..bytes_read {
-                buf[i-1] = buf[i];
-            }
 
             if bytes_read <= 1 {
                 continue; // We need more than the report ID.
@@ -137,7 +133,7 @@ impl<'a> Psvr<'a> {
 
             let frame = sensor::Frame::read_bytes(&buf)?;
 
-            // FIXME: perhaps we should interpolate between the things?
+            // FIXME: perhaps we should interpolate between the thingse
             for instant in frame.instants.iter().take(1) {
                 let (g,a) = (instant.gyroscope(), instant.accelerometer());
 
