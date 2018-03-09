@@ -103,8 +103,6 @@ impl<'a> Psvr<'a> {
     fn send_raw(&mut self,
                 data: &[u8]) -> Result<(), Error> {
         let mut raw = data.to_owned();
-        // Add zero for the report ID.
-        raw.insert(0, 0);
 
         self.control_device.write(&raw)?;
         Ok(())
@@ -134,7 +132,7 @@ impl<'a> Psvr<'a> {
             let frame = sensor::Frame::read_bytes(&buf)?;
 
             // FIXME: perhaps we should interpolate between the thingse
-            for instant in frame.instants.iter().take(1) {
+            for instant in frame.instants.iter() {
                 let (g,a) = (instant.gyroscope(), instant.accelerometer());
 
                 self.inertia_sensor.update(&inertia::Instant {
@@ -159,6 +157,10 @@ impl<'a> Psvr<'a> {
     /// Sets the state of the power.
     pub fn set_power(&mut self, on: bool) -> Result<(), Error> {
         self.send_command(&command::SetPower { on }).chain_err(|| "could not send set power command")
+    }
+
+    pub fn vr_mode(&mut self) -> Result<(), Error> {
+        self.send_command(&command::SetVrMode { vr_mode: true }).chain_err(|| "could not enable vr mode")
     }
 
     /// Enables VR trawcking.

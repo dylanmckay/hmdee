@@ -56,8 +56,11 @@ pub struct Instant {
 
 impl Instant {
     pub fn accelerometer(&self) -> na::Vector3<Scalar> {
+        const RESOLUTION_BITS: u32 = 12;
+
         let f = |c| {
-            -(c as f64 / 32768.0) * 16.0
+            let raw = c << 4; // Shift 12->16 bits.
+            -(raw as f64 / 32768.0)
         };
 
         na::Vector3::new(f(self.accelerometer_raw.x),
