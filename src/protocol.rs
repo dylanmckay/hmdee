@@ -5,7 +5,6 @@ pub const COMMAND_HEADER_SIZE: usize = 4;
 
 /// The header for a command message.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(packed)]
 pub struct CommandHeader {
     pub id: u8,
     pub status: u8,
@@ -14,7 +13,6 @@ pub struct CommandHeader {
 }
 
 #[derive(Clone)]
-#[repr(packed)]
 pub struct Command {
     pub header: CommandHeader,
     pub payload: Vec<u8>,
