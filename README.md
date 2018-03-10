@@ -6,5 +6,7 @@
 
 A Rust library for interfacing with the PlayStation VR.
 
+Works on Linux, Mac, and Windows.
+
 [Documentation](https://docs.rs/psvr/)
 
