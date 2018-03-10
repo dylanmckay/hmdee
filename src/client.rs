@@ -107,7 +107,7 @@ impl<'a> Psvr<'a> {
     }
 
     /// Receives sensor data.
-    pub fn receive_sensor(&mut self) -> Result<sensor::Frame, Error> {
+    pub fn receive_sensor(&mut self) -> Result<sensor::Readout, Error> {
         use self::sensor::Readable;
 
         loop {
@@ -124,13 +124,13 @@ impl<'a> Psvr<'a> {
             if bytes_read <= 1 {
                 continue; // We need more than the report ID.
             } if bytes_read != sensor::FRAME_SIZE {
-                panic!("not enough bytes read of sensor frame (expected {} bytes but got {} bytes)", sensor::FRAME_SIZE, bytes_read);
+                panic!("not enough bytes read of sensor readout (expected {} bytes but got {} bytes)", sensor::FRAME_SIZE, bytes_read);
             }
 
-            let frame = sensor::Frame::read_bytes(&buf)?;
+            let readout = sensor::Readout::read_bytes(&buf)?;
 
             // FIXME: perhaps we should interpolate between the thingse
-            for instant in frame.instants.iter().take(1) {
+            for instant in readout.instants.iter().take(1) {
                 let (g,a) = (instant.gyroscope(), instant.accelerometer());
 
                 self.inertia_sensor.update(&inertia::Instant {
@@ -138,7 +138,7 @@ impl<'a> Psvr<'a> {
                     accelerometer: na::Vector3::new(a.x as _, a.y as _, a.z as _),
                 });
             }
-            return Ok(frame);
+            return Ok(readout);
         }
     }
 

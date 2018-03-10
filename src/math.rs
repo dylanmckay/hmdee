@@ -1,3 +1,5 @@
+//! Mathematics types.
+
 use na;
 
 /// The magnitude type.

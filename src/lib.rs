@@ -3,7 +3,7 @@ extern crate byteorder;
 extern crate delta;
 #[macro_use]
 extern crate error_chain;
-extern crate hidapi;
+pub extern crate hidapi;
 extern crate nalgebra as na;
 
 pub use self::client::*;

@@ -13,16 +13,20 @@ pub type Scalar = f64;
 /// The sensor frame size.
 pub const FRAME_SIZE: usize = 64;
 
+/// Something that can be read from raw bytes.
 pub trait Readable : Sized {
+    /// Reads a new value from a reader.
     fn read(read: &mut Read) -> Result<Self, Error>;
 
+    /// Reads a new value from raw bytes.
     fn read_bytes(raw: &[u8; FRAME_SIZE]) -> Result<Self, Error> {
         Self::read(&mut io::Cursor::new(&raw[..]))
     }
 }
 
+/// A sensor readout.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Frame {
+pub struct Readout {
     pub buttons: Buttons,
     pub volume: u8,
     pub status: Status,
@@ -115,7 +119,7 @@ impl Instant {
 	// } data[2];
 	// uint8_t reserved3[12];
 
-impl Readable for Frame {
+impl Readable for Readout {
     fn read(read: &mut Read) -> Result<Self, Error> {
         let buttons = Buttons::read(read)?;
 
@@ -130,7 +134,7 @@ impl Readable for Frame {
         let instants = [instant_one, instant_two];
         read_reserved(read, 12)?;
 
-        Ok(Frame {
+        Ok(Readout {
             buttons, volume, status, instants,
         })
     }
@@ -229,7 +233,7 @@ mod test {
         let mut read = io::Cursor::new(&data[..]);
 
         assert_eq!(0, read.position());
-        Frame::read(&mut read).expect("failed to read frame");
+        Readout::read(&mut read).expect("failed to parse sensor readout");
         assert_eq!(FRAME_SIZE, read.position() as usize);
     }
 }
