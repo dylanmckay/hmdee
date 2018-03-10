@@ -52,9 +52,10 @@ impl Sensor {
     /// Updates the inertia sensor.
     pub fn update(&mut self, instant: &Instant) {
         let delta = self.timer.mark();
-        let delta = 1.0/120.0;
 
-        println!("delta: {}", delta);
+        // Change the sample period of the existing Madgwick object.
+        // The library doesn't directly support dynamic periods.
+        self.madgwick = ahrs::Madgwick::new_with_quat(delta as _, MADGWICK_BETA, self.madgwick.quat);
 
         self.madgwick.update_imu(
             &instant.gyroscope.into(),
