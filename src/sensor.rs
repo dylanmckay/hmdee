@@ -4,10 +4,11 @@ use Error;
 use usb::ByteOrder;
 
 use std::io::prelude::*;
-use std::io;
+use std::{cmp, fmt, io};
 use byteorder::ReadBytesExt;
+use na;
 
-pub type Scalar = i16;
+pub type Scalar = f64;
 
 /// The sensor frame size.
 pub const FRAME_SIZE: usize = 64;
@@ -46,23 +47,37 @@ pub struct Status {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Orientation {
-    pub yaw: Scalar,
-    pub pitch: Scalar,
-    pub roll: Scalar,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Vector3 {
-    pub x: Scalar,
-    pub y: Scalar,
-    pub z: Scalar,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Instant {
-    pub orientation: Orientation,
-    pub acceleration: Vector3,
+    /// The gyroscope readout.
+    pub gyroscope_raw: na::Vector3<i16>,
+    /// The accelerometer readout.
+    pub accelerometer_raw: na::Vector3<i16>,
+}
+
+impl Instant {
+    pub fn accelerometer(&self) -> na::Vector3<Scalar> {
+        const RESOLUTION_BITS: u32 = 12;
+
+        let f = |c| {
+            let raw = c << 4; // Shift 12->16 bits.
+            -(raw as f64 / 32768.0)
+        };
+
+        na::Vector3::new(f(self.accelerometer_raw.x),
+                         f(self.accelerometer_raw.y),
+                         f(-self.accelerometer_raw.z))
+    }
+
+    pub fn gyroscope(&self) -> na::Vector3<Scalar> {
+        let f = |c| {
+            (c as Scalar / 32768.0) * 2000.0
+                * (::std::f64::consts::PI / 180.0) // DEGTORAD
+        };
+
+        na::Vector3::new(f(self.gyroscope_raw.x),
+                         f(self.gyroscope_raw.y),
+                         f(-self.gyroscope_raw.z))
+    }
 }
 
 	// struct {
@@ -159,35 +174,51 @@ impl Readable for Status {
     }
 }
 
-impl Readable for Orientation {
+impl<T> Readable for na::Vector3<T>
+    where T: Copy + Readable + fmt::Debug + cmp::PartialEq + 'static{
     fn read(read: &mut Read) -> Result<Self, Error> {
-        Ok(Orientation {
-            yaw: read.read_i16::<ByteOrder>()?,
-            pitch: read.read_i16::<ByteOrder>()?,
-            roll: read.read_i16::<ByteOrder>()?,
-        })
-    }
-}
-
-impl Readable for Vector3 {
-    fn read(read: &mut Read) -> Result<Self, Error> {
-        Ok(Vector3 {
-            x: read.read_i16::<ByteOrder>()?,
-            y: read.read_i16::<ByteOrder>()?,
-            z: read.read_i16::<ByteOrder>()?,
-        })
+        Ok(na::Vector3::new(
+            Readable::read(read)?,
+            Readable::read(read)?,
+            Readable::read(read)?,
+        ))
     }
 }
 
 impl Readable for Instant {
     fn read(read: &mut Read) -> Result<Self, Error> {
-        let orientation = Orientation::read(read)?;
-        let acceleration = Vector3::read(read)?;
+        let gyroscope_raw = Readable::read(read)?;
+        let accelerometer_raw = Readable::read(read)?;
         read_reserved(read, 4)?;
 
-        Ok(Instant { orientation, acceleration })
+        Ok(Instant { gyroscope_raw, accelerometer_raw })
     }
 }
+
+macro_rules! impl_readable_primitive {
+    ($ty:ident, $read_fn:ident, $byte_order:ty) => {
+        impl Readable for $ty {
+            fn read(read: &mut Read) -> Result<Self, Error> {
+                Ok(read.$read_fn::<$byte_order>()?)
+            }
+        }
+    };
+
+    ($ty:ident, $read_fn:ident) => {
+        impl Readable for $ty {
+            fn read(read: &mut Read) -> Result<Self, Error> {
+                Ok(read.$read_fn()?)
+            }
+        }
+    };
+}
+
+impl_readable_primitive!(i8, read_i8);
+impl_readable_primitive!(u8, read_u8);
+impl_readable_primitive!(i16, read_i16, ByteOrder);
+impl_readable_primitive!(u16, read_u16, ByteOrder);
+impl_readable_primitive!(i32, read_i32, ByteOrder);
+impl_readable_primitive!(u32, read_u32, ByteOrder);
 
 #[cfg(test)]
 mod test {

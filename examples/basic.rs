@@ -1,7 +1,8 @@
 extern crate psvr;
 extern crate hidapi;
+extern crate nalgebra as na;
+extern crate delta;
 
-use psvr::ResultExt;
 use std::{thread, time, process};
 
 fn main() {
@@ -16,9 +17,7 @@ fn main() {
 
 fn run() -> Result<(), psvr::Error> {
     let hidapi = hidapi::HidApi::new().unwrap();
-
-    for foo in psvr::iter(&hidapi).unwrap() {
-    }
+    let mut timer = delta::Timer::new();
 
     let mut psvr = match psvr::get(&hidapi)? {
         Some(psvr) => psvr,
@@ -27,24 +26,15 @@ fn run() -> Result<(), psvr::Error> {
 
     psvr.power_on()?;
 
-    // println!("discovered PSVR device, printing information");
-    // psvr.print_information()?;
-
-    // println!("Enabling VR tracking");
-    // psvr.vr_tracking().chain_err(|| "failed to enable VR tracking")?;
-
-    thread::sleep(time::Duration::from_millis(100));
-    println!("starting to read from sensors");
-
     for _ in 0..200 {
-        let sensor_frame = psvr.receive_sensor().expect("failed to receive from sensor");
-        thread::sleep(time::Duration::from_millis(20));
+        let sensor = psvr.receive_sensor().expect("failed to receive from sensor");
+        let delta = timer.mark();
 
-        println!("{:?}", sensor_frame.instants[0]);
+        println!("elapsed: {}, orientation: {:?}", delta, psvr.orientation());
     }
 
     println!("finished reading from sensors");
-    psvr.close()?;
+    // psvr.close()?;
     Ok(())
 }
 

@@ -1,9 +1,9 @@
 use {usb, Error, ErrorKind, ResultExt};
-use {command, protocol, sensor};
+use {command, inertia, math, protocol, sensor};
 
 use std;
-
 use hidapi;
+use na;
 
 /// A PSVR device connected via USB.
 ///
@@ -13,6 +13,8 @@ pub struct Psvr<'a> {
     control_device: hidapi::HidDevice<'a>,
     /// The USB HID sensor interface.
     sensor_device: hidapi::HidDevice<'a>,
+    /// The inertia sensor.
+    inertia_sensor: inertia::Sensor,
 }
 
 /// Get an iterator over all PSVRs on the system.
@@ -64,7 +66,10 @@ impl<'a> Psvr<'a> {
 
         let control_device = hidapi.open_path(&control_device_info.path).unwrap(); // FIXME: remove unwrap.
         let sensor_device = hidapi.open_path(&sensor_device_info.path).unwrap(); // FIXME: remove unwrap.
-        Ok(Psvr { control_device, sensor_device })
+        Ok(Psvr {
+            inertia_sensor: inertia::Sensor::new(),
+            control_device, sensor_device,
+        })
     }
 
     /// Prints information about the usb device to stdout.
@@ -98,8 +103,6 @@ impl<'a> Psvr<'a> {
     fn send_raw(&mut self,
                 data: &[u8]) -> Result<(), Error> {
         let mut raw = data.to_owned();
-        // Add zero for the report ID.
-        raw.insert(0, 0);
 
         self.control_device.write(&raw)?;
         Ok(())
@@ -119,14 +122,6 @@ impl<'a> Psvr<'a> {
                 },
             };
 
-            if bytes_read > 0{
-                println!("read bytes: {:?}", bytes_read);
-            }
-
-            // Remove report ID byte from raw data.
-            for i in 1..bytes_read {
-                buf[i-1] = buf[i];
-            }
 
             if bytes_read <= 1 {
                 continue; // We need more than the report ID.
@@ -135,6 +130,16 @@ impl<'a> Psvr<'a> {
             }
 
             let frame = sensor::Frame::read_bytes(&buf)?;
+
+            // FIXME: perhaps we should interpolate between the thingse
+            for instant in frame.instants.iter().take(1) {
+                let (g,a) = (instant.gyroscope(), instant.accelerometer());
+
+                self.inertia_sensor.update(&inertia::Instant {
+                    gyroscope: na::Vector3::new(g.x as _, g.y as _, g.z as _),
+                    accelerometer: na::Vector3::new(a.x as _, a.y as _, a.z as _),
+                });
+            }
             return Ok(frame);
         }
     }
@@ -145,13 +150,17 @@ impl<'a> Psvr<'a> {
     }
 
     /// Powers off the PSVR.
-    pub fn power_off(mut self) -> Result<(), Error> {
+    pub fn power_off(&mut self) -> Result<(), Error> {
         self.set_power(false)
     }
 
     /// Sets the state of the power.
     pub fn set_power(&mut self, on: bool) -> Result<(), Error> {
         self.send_command(&command::SetPower { on }).chain_err(|| "could not send set power command")
+    }
+
+    pub fn vr_mode(&mut self) -> Result<(), Error> {
+        self.send_command(&command::SetVrMode { vr_mode: true }).chain_err(|| "could not enable vr mode")
     }
 
     /// Enables VR trawcking.
@@ -162,6 +171,11 @@ impl<'a> Psvr<'a> {
     /// Powers off the PSVR and disconnects from it.
     pub fn close(mut self) -> Result<(), Error> {
         self.send_command(&command::SetPower { on: false }).map(|_| ())
+    }
+
+    /// Gets the orientation of the PSVR headset.
+    pub fn orientation(&self) -> math::Quaternion {
+        self.inertia_sensor.hmd_orientation()
     }
 }
 
