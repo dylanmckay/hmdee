@@ -102,9 +102,7 @@ impl<'a> Psvr<'a> {
     /// Sends raw data.
     fn send_raw(&mut self,
                 data: &[u8]) -> Result<(), Error> {
-        let mut raw = data.to_owned();
-
-        self.control_device.write(&raw)?;
+        self.control_device.write(&data.to_owned())?;
         Ok(())
     }
 

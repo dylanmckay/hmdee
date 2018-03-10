@@ -3,7 +3,7 @@ extern crate hidapi;
 extern crate nalgebra as na;
 extern crate delta;
 
-use std::{thread, time, process};
+use std::process;
 
 fn main() {
     match run() {
@@ -30,7 +30,7 @@ fn run() -> Result<(), psvr::Error> {
         let sensor = psvr.receive_sensor().expect("failed to receive from sensor");
         let delta = timer.mark();
 
-        println!("elapsed: {}, orientation: {:?}", delta, psvr.orientation());
+        println!("elapsed: {}, orientation: {:?}, buttons: {:?}", delta, psvr.orientation(), sensor.buttons);
     }
 
     println!("finished reading from sensors");
