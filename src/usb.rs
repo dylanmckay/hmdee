@@ -26,11 +26,6 @@ pub enum Interface {
 }
 
 impl Interface {
-    /// Gets the interface number.
-    pub fn number(self) -> i32 {
-        self as i32
-    }
-
     pub fn from_i32(value: i32) -> Result<Self, Error> {
         use usb::Interface::*;
 

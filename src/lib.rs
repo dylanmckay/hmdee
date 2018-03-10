@@ -16,6 +16,6 @@ pub mod inertia;
 pub mod math;
 pub mod protocol;
 pub mod sensor;
-pub mod usb;
+mod usb;
 
 
