@@ -11,5 +11,11 @@ Works on Linux, Mac, and Windows.
 *NOTE*: the latest version of this crate cannot be published to crates.io until
 signal11/hidapi#380 is merged. Until then, a custom fork is used.
 
+Supported features
+
+* Head orientation tracking
+* Volume/mute buttons
+* VR mode and cinematic mode both supported
+
 [Documentation](https://docs.rs/psvr/)
 
