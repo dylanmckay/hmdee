@@ -2,7 +2,7 @@
 
 #[cfg(feature = "psvr")] pub mod psvr;
 
-use input;
+use {info, input};
 use core::math;
 
 /// A head mounted device.
@@ -15,4 +15,7 @@ pub trait HeadMountedDevice {
 
     /// Gets the state of a button.
     fn button(&self, button: input::Button) -> input::ButtonState;
+
+    /// Get information about the headset.
+    fn properties(&self) -> &info::Properties;
 }

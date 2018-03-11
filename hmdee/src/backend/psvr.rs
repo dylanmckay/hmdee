@@ -1,8 +1,57 @@
 use backend::HeadMountedDevice;
 
 use core::math;
-use input;
+use {info, input};
 use psvr;
+
+fn psvr_properties() -> info::Properties {
+    const LENS_WIDTH: u32 = 1920 / 2;
+    const DISPLAY_HEIGHT: u32 = 1080;
+
+    let lens = info::Lens {
+        resolution: (LENS_WIDTH, DISPLAY_HEIGHT),
+        field_of_view: info::FieldOfView {
+            horizontal: info::FieldOfViewAxis {
+                minimum_degrees: 100.0,
+                maximum_degrees: 100.0,
+                recommended_degrees: 100.0,
+            },
+            // FIXME: confirm these numbers
+            // I cannot find any information about the _vertical_
+            // FOV of the PSVR.
+            vertical: info::FieldOfViewAxis {
+                minimum_degrees: 100.0,
+                maximum_degrees: 100.0,
+                recommended_degrees: 100.0,
+            },
+        },
+        distortion_coefficients: vec![0.22, 0.24],
+        chromatic_aberration: info::ChromaticAberration {
+            red: info::ChromaticAberrationFactor {
+                vertical: 1.0, horizontal: 1.0,
+            },
+            green: info::ChromaticAberrationFactor {
+                vertical: 1.0078, horizontal: 1.0091,
+            },
+            blue: info::ChromaticAberrationFactor {
+                vertical: 1.0192, horizontal: 1.0224,
+            },
+        },
+    };
+
+    info::Properties::LensBased {
+        left: lens.clone(), right: lens,
+        lens_separation: info::Distance {
+            micrometers: 63_100, // 63.1 millimeters.
+        },
+        lens_to_eye_distance: info::Distance {
+            micrometers: 39_480, // 39.48 millimeters.
+        },
+        screen_to_lens_distance: info::Distance {
+            micrometers: 35_400, // 35.4 millimeters
+        },
+    }
+}
 
 /// A PlayStation VR headset.
 pub struct Psvr<'hidapi> {
@@ -11,6 +60,8 @@ pub struct Psvr<'hidapi> {
 
     /// The latest readout from the PSVR sensors.
     latest_sensor_readout: Option<psvr::sensor::Readout>,
+    /// The headset properties.
+    headset_properties: info::Properties,
 }
 
 impl<'a> HeadMountedDevice for Psvr<'a> {
@@ -29,6 +80,10 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
             input::Button::Mute => button_from_readout(&self.latest_sensor_readout, |r| r.buttons.mute),
         }
     }
+
+    fn properties(&self) -> &info::Properties {
+        &self.headset_properties
+    }
 }
 
 impl<'context> From<psvr::Psvr<'context>> for Psvr<'context> {
@@ -36,6 +91,7 @@ impl<'context> From<psvr::Psvr<'context>> for Psvr<'context> {
         Psvr {
             latest_sensor_readout: None,
             psvr,
+            headset_properties: psvr_properties(),
         }
     }
 }

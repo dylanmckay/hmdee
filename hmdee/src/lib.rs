@@ -18,6 +18,7 @@ extern crate hidapi;
 
 pub mod backend;
 mod context;
-mod headset;
 mod discover;
+mod headset;
+pub mod info;
 pub mod input;
