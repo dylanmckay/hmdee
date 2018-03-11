@@ -94,6 +94,8 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
 
     fn power_on(&mut self) {
         self.psvr.power_on().unwrap();
+        self.psvr.vr_mode().unwrap();
+        self.psvr.vr_tracking().unwrap();
     }
 
     fn power_off(&mut self) {
