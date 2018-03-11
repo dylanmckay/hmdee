@@ -12,3 +12,4 @@ mod reexports {
 
 pub mod backend;
 mod hmd;
+pub mod input;
