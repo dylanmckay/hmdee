@@ -42,7 +42,7 @@
 //! ```
 
 use Error;
-use math::Scalar;
+use hmdee_core::math::Scalar;
 use usb::ByteOrder;
 
 use std::io::prelude::*;

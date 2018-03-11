@@ -11,7 +11,7 @@
 //!   * Accelerometer
 //!   * There is no magnetometer. If there was, the PSVR would have 9 degrees of freedom
 
-use math::{Quaternion, Scalar, Vector3};
+use hmdee_core::math::{Quaternion, Scalar, Vector3};
 use ahrs::{self, Ahrs};
 use delta;
 

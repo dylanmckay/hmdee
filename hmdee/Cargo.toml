@@ -8,5 +8,5 @@ default = ["psvr"]
 
 [dependencies]
 hmdee_core = { path = "../core", version = "0.1.0" }
-psvr = { git = "https://github.com/dylanmckay/psvr.git", optional = true }
+psvr = { path = "../psvr", optional = true }
 

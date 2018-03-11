@@ -1,3 +1,5 @@
+extern crate hmdee_core;
+
 extern crate ahrs;
 extern crate byteorder;
 extern crate delta;
@@ -13,7 +15,6 @@ mod errors;
 mod client;
 pub mod command;
 pub mod inertia;
-pub mod math;
 pub mod protocol;
 pub mod sensor;
 mod usb;

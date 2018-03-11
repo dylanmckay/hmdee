@@ -1,5 +1,6 @@
 use {usb, Error, ErrorKind, ResultExt};
-use {command, inertia, math, protocol, sensor};
+use {command, inertia, protocol, sensor};
+use hmdee_core::math;
 
 use std;
 use hidapi;
