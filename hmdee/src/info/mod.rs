@@ -12,6 +12,8 @@ use core::math;
 pub struct Properties {
     /// Information about the headset's visuals.
     pub visuals: Visuals,
+    /// How does the display of this.
+    pub display_connector: DisplayConnector,
 }
 
 /// Information about the visuals
@@ -32,6 +34,16 @@ pub enum Visuals {
         left: Lens,
         /// Information about the right lens.
         right: Lens,
+    },
+}
+
+/// A connection method for a display.
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum DisplayConnector {
+    /// The display connects via HDMI.
+    Hdmi {
+        /// The monitor name of the VR headset, as reported by HDMI EDID.
+        monitor_name: String,
     },
 }
 

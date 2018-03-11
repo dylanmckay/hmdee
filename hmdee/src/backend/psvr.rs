@@ -4,6 +4,8 @@ use core::math;
 use {info, input};
 use psvr;
 
+const PSVR_HDMI_MONITOR_NAME: &'static str = "SIE  HMD *08";
+
 fn psvr_properties() -> info::Properties {
     const LENS_WIDTH: u32 = 1920 / 2;
     const DISPLAY_HEIGHT: u32 = 1080;
@@ -53,6 +55,7 @@ fn psvr_properties() -> info::Properties {
     };
 
     info::Properties {
+        display_connector: info::DisplayConnector::Hdmi { monitor_name: PSVR_HDMI_MONITOR_NAME.to_owned() },
         visuals
     }
 }
