@@ -1,9 +1,8 @@
-extern crate psvr;
-
-use HeadMountedDevice;
+use backend::HeadMountedDevice;
 
 use core::math;
 use input;
+use psvr;
 
 /// A PlayStation VR headset.
 pub struct Psvr<'hidapi> {
@@ -28,6 +27,15 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
             input::Button::VolumeUp => button_from_readout(&self.latest_sensor_readout, |r| r.buttons.plus),
             input::Button::VolumeDown => button_from_readout(&self.latest_sensor_readout, |r| r.buttons.minus),
             input::Button::Mute => button_from_readout(&self.latest_sensor_readout, |r| r.buttons.mute),
+        }
+    }
+}
+
+impl<'context> From<psvr::Psvr<'context>> for Psvr<'context> {
+    fn from(psvr: psvr::Psvr<'context>) -> Self {
+        Psvr {
+            latest_sensor_readout: None,
+            psvr,
         }
     }
 }
