@@ -91,6 +91,14 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
     fn properties(&self) -> &info::Properties {
         &self.headset_properties
     }
+
+    fn power_on(&mut self) {
+        self.psvr.power_on().unwrap();
+    }
+
+    fn power_off(&mut self) {
+        self.psvr.power_off().unwrap();
+    }
 }
 
 impl<'context> From<psvr::Psvr<'context>> for Psvr<'context> {

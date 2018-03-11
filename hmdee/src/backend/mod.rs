@@ -18,4 +18,12 @@ pub trait HeadMountedDevice {
 
     /// Get information about the headset.
     fn properties(&self) -> &info::Properties;
+
+    /// Powers on the headset.
+    ///
+    /// **Contract**: If the device is already on, nothing should happen.
+    fn power_on(&mut self);
+
+    /// Powers off the headset.
+    fn power_off(&mut self);
 }

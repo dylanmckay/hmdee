@@ -11,7 +11,13 @@ macro_rules! dispatch {
         match *$self {
             Headset::Psvr(ref psvr) => psvr . $method ( $( $arg ),* ),
         }
-    }
+    };
+
+    { mut $self:expr => $method:ident ( $( $arg:expr ),* ) } => {
+        match *$self {
+            Headset::Psvr(ref mut psvr) => psvr . $method ( $( $arg ),* ),
+        }
+    };
 }
 
 impl<'context> backend::HeadMountedDevice for Headset<'context> {
@@ -29,6 +35,14 @@ impl<'context> backend::HeadMountedDevice for Headset<'context> {
 
     fn properties(&self) -> &info::Properties {
         dispatch! { self => properties() }
+    }
+
+    fn power_on(&mut self) {
+        dispatch! { mut self => power_on() }
+    }
+
+    fn power_off(&mut self) {
+        dispatch! { mut self => power_off() }
     }
 }
 
