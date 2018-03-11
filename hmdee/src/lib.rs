@@ -7,3 +7,9 @@ mod reexports {
 
 pub mod backend;
 
+/// A head mounted device.
+pub trait HeadMountedDevice {
+    /// Gets the product name of the HMD.
+    fn product_name(&self) -> &'static str;
+}
+

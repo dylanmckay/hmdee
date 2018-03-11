@@ -1,6 +1,6 @@
 extern crate psvr;
 
-use backend::HeadMountedDevice;
+use HeadMountedDevice;
 
 /// A PlayStation VR headset.
 pub struct Psvr<'hidapi> {
