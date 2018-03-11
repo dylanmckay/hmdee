@@ -9,7 +9,14 @@ use core::math;
 
 /// Information about a VR headset.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub enum Properties {
+pub struct Properties {
+    /// Information about the headset's visuals.
+    pub visuals: Visuals,
+}
+
+/// Information about the visuals
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Visuals {
     /// A headset with one or more lenses.
     ///
     /// Information about the left and right lenses are separate,

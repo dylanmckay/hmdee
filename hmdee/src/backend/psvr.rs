@@ -39,7 +39,7 @@ fn psvr_properties() -> info::Properties {
         },
     };
 
-    info::Properties::LensBased {
+    let visuals = info::Visuals::LensBased {
         left: lens.clone(), right: lens,
         lens_separation: info::Distance {
             micrometers: 63_100, // 63.1 millimeters.
@@ -50,6 +50,10 @@ fn psvr_properties() -> info::Properties {
         screen_to_lens_distance: info::Distance {
             micrometers: 35_400, // 35.4 millimeters
         },
+    };
+
+    info::Properties {
+        visuals
     }
 }
 
