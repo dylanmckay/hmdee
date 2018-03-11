@@ -1,0 +1,12 @@
+[package]
+name = "hmdee"
+version = "0.1.0"
+authors = ["Dylan McKay <me@dylanmckay.io>"]
+
+[features]
+default = ["psvr"]
+
+[dependencies]
+hmdee_core = { path = "../core", version = "0.1.0" }
+psvr = { git = "https://github.com/dylanmckay/psvr.git", optional = true }
+

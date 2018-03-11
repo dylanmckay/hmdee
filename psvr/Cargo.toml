@@ -22,5 +22,5 @@ error-chain = "0.11"
 # Going back to crates.io blocked on this pull request.
 # https://github.com/signal11/hidapi/pull/380
 hidapi = { git = "https://github.com/dylanmckay/hidapi-rs.git", branch = "mac-hid-interface-support" }
-nalgebra = "0.11"
+nalgebra = "0.14"
 
