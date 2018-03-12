@@ -19,13 +19,10 @@ fn psvr_properties() -> info::Properties {
                 maximum_degrees: 100.0,
                 recommended_degrees: 100.0,
             },
-            // FIXME: confirm these numbers
-            // I cannot find any information about the _vertical_
-            // FOV of the PSVR.
             vertical: info::FieldOfViewAxis {
-                minimum_degrees: 100.0,
-                maximum_degrees: 100.0,
-                recommended_degrees: 100.0,
+                minimum_degrees: 68.0,
+                maximum_degrees: 68.0,
+                recommended_degrees: 68.0,
             },
         },
         distortion_coefficients: vec![0.22, 0.24],
