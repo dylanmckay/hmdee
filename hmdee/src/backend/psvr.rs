@@ -29,17 +29,7 @@ fn psvr_properties() -> info::Properties {
             },
         },
         distortion_coefficients: vec![0.22, 0.24],
-        chromatic_aberration: info::ChromaticAberration {
-            red: info::ChromaticAberrationFactor {
-                vertical: 1.0, horizontal: 1.0,
-            },
-            green: info::ChromaticAberrationFactor {
-                vertical: 1.0078, horizontal: 1.0091,
-            },
-            blue: info::ChromaticAberrationFactor {
-                vertical: 1.0192, horizontal: 1.0224,
-            },
-        },
+        chromatic_aberration_factors: info::ChromaticAberrationFactors::no_adjustments(),
     };
 
     let visuals = info::Visuals::LensBased {

@@ -17,23 +17,25 @@ pub struct Lens {
     /// ```
     pub distortion_coefficients: Vec<math::Scalar>,
     /// Chromatic aberration properties.
-    pub chromatic_aberration: ChromaticAberration,
+    pub chromatic_aberration_factors: ChromaticAberrationFactors,
 }
 
 /// Chromatic aberration factors.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub struct ChromaticAberration {
-    pub red: ChromaticAberrationFactor,
-    pub green: ChromaticAberrationFactor,
-    pub blue: ChromaticAberrationFactor,
+pub struct ChromaticAberrationFactors {
+    pub red: math::Scalar,
+    pub green: math::Scalar,
+    pub blue: math::Scalar,
 }
 
-/// A chromatic aberration factor.
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub struct ChromaticAberrationFactor {
-    /// The vertical aberration factor.
-    pub vertical: math::Scalar,
-    /// The horizontal aberration factor.
-    pub horizontal: math::Scalar,
+impl ChromaticAberrationFactors {
+    /// Gets the factors corresponding to no aberration adjustment.
+    pub fn no_adjustments() -> Self {
+        ChromaticAberrationFactors {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+        }
+    }
 }
 

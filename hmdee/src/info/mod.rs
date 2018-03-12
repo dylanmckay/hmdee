@@ -1,7 +1,6 @@
 //! Information about a headset.
 
-pub use self::lens::{ChromaticAberration, ChromaticAberrationFactor,
-                     Lens};
+pub use self::lens::{ChromaticAberrationFactors, Lens};
 
 mod lens;
 
