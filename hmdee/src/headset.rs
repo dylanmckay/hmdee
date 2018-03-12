@@ -1,5 +1,5 @@
-use core::math;
 use {backend, info, input};
+use core::math;
 
 /// A head mounted device.
 pub enum Headset<'context> {
@@ -35,6 +35,10 @@ impl<'context> backend::HeadMountedDevice for Headset<'context> {
 
     fn properties(&self) -> &info::Properties {
         dispatch! { self => properties() }
+    }
+
+    fn update(&mut self) {
+        dispatch! { mut self => update() }
     }
 
     fn power_on(&mut self) {

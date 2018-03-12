@@ -92,6 +92,11 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
         &self.headset_properties
     }
 
+    fn update(&mut self) {
+        let sensor_readout = self.psvr.receive_sensor().unwrap();
+        self.latest_sensor_readout = Some(sensor_readout);
+    }
+
     fn power_on(&mut self) {
         self.psvr.power_on().unwrap();
         self.psvr.vr_mode().unwrap();
