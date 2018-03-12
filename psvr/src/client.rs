@@ -1,6 +1,5 @@
-use {usb, Error, ErrorKind, ResultExt};
-use {command, inertia, protocol, sensor};
-use hmdee_core::math;
+use {command, inertia, protocol, sensor, usb};
+use hmdee_core::{math, Error};
 
 use std;
 use hidapi;
@@ -97,13 +96,13 @@ impl<'a> Psvr<'a> {
             payload: payload,
         };
 
-        self.send_raw(&command.raw_bytes()).chain_err(|| "could not send command")
+        self.send_raw(&command.raw_bytes())
     }
 
     /// Sends raw data.
     fn send_raw(&mut self,
                 data: &[u8]) -> Result<(), Error> {
-        self.control_device.write(&data.to_owned())?;
+        self.control_device.write(&data.to_owned()).map_err(Error::communication_error)?;
         Ok(())
     }
 
@@ -113,14 +112,7 @@ impl<'a> Psvr<'a> {
 
         loop {
             let mut buf: [u8; sensor::FRAME_SIZE] = [0; 64];
-            let bytes_read = match self.sensor_device.read_timeout(&mut buf, 1) {
-                Ok(bytes_read) => bytes_read,
-                Err(e) => {
-                    let err: Error = ErrorKind::Hid(e).into();
-                    return Err(err).chain_err(|| "could not read from device");
-                },
-            };
-
+            let bytes_read = self.sensor_device.read_timeout(&mut buf, 1).map_err(Error::communication_error)?;
 
             if bytes_read <= 1 {
                 continue; // We need more than the report ID.
@@ -155,11 +147,11 @@ impl<'a> Psvr<'a> {
 
     /// Sets the state of the power.
     pub fn set_power(&mut self, on: bool) -> Result<(), Error> {
-        self.send_command(&command::SetPower { on }).chain_err(|| "could not send set power command")
+        self.send_command(&command::SetPower { on })
     }
 
     pub fn vr_mode(&mut self) -> Result<(), Error> {
-        self.send_command(&command::SetVrMode { vr_mode: true }).chain_err(|| "could not enable vr mode")
+        self.send_command(&command::SetVrMode { vr_mode: true })
     }
 
     /// Enables VR trawcking.
@@ -179,7 +171,7 @@ impl<'a> Psvr<'a> {
 }
 
 mod discover {
-    use Error;
+    use hmdee_core::Error;
     use usb;
 
     use hidapi;
