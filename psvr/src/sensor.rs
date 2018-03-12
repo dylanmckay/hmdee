@@ -41,7 +41,7 @@
 //! uint8_t reserved3[12];
 //! ```
 
-use Error;
+use hmdee_core::Error;
 use hmdee_core::math::Scalar;
 use usb::ByteOrder;
 

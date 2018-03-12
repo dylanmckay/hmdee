@@ -1,6 +1,6 @@
 //! PSVR usb stuff.
 
-use Error;
+use hmdee_core;
 
 /// The vendor ID of the PSVR.
 pub const PSVR_VID: u16 = 0x054c;
@@ -26,7 +26,7 @@ pub enum Interface {
 }
 
 impl Interface {
-    pub fn from_i32(value: i32) -> Result<Self, Error> {
+    pub fn from_i32(value: i32) -> Result<Self, hmdee_core::Error> {
         use usb::Interface::*;
 
         match value {
@@ -39,7 +39,9 @@ impl Interface {
             6 => Ok(VideoStreamH264),
             7 => Ok(VideoStreamBulkIn),
             8 => Ok(HidControl2),
-            _ => Err(format!("interface '{}' is not a known PSVR interface number", value).into()),
+            _ => Err(hmdee_core::Error::CommunicationError {
+                message: format!("usb interface '{}' is not a known PSVR interface number", value).into()
+            }),
         }
     }
 }

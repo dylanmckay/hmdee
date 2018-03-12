@@ -4,5 +4,7 @@ version = "0.1.0"
 authors = ["Dylan McKay <me@dylanmckay.io>"]
 
 [dependencies]
+failure = "0.1"
+failure_derive = "0.1"
 nalgebra = "0.11"
 
