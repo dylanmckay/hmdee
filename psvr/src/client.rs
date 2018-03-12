@@ -60,23 +60,17 @@ impl<'a> Psvr<'a> {
     fn connect(psvr_info: &discover::PsvrInfo,
                hidapi: &'a hidapi::HidApi) -> Result<Self, Error> {
         let control_device_info = psvr_info.interface_device_info(usb::Interface::HidControl)
-            .expect("PSVR does not expose an HID control interface");
+            .ok_or_else(|| Error::CommunicationError { message: "PSVR does not expose an HID control interface".to_owned() })?;
         let sensor_device_info = psvr_info.interface_device_info(usb::Interface::HidSensor)
-            .expect("PSVR does not expose an HID sensor interface");
+            .ok_or_else(|| Error::CommunicationError { message: "PSVR does not expose an HID sensor interface".to_owned() })?;
 
-        let control_device = hidapi.open_path(&control_device_info.path).unwrap(); // FIXME: remove unwrap.
-        let sensor_device = hidapi.open_path(&sensor_device_info.path).unwrap(); // FIXME: remove unwrap.
+        let control_device = hidapi.open_path(&control_device_info.path).map_err(Error::communication_error)?;
+        let sensor_device = hidapi.open_path(&sensor_device_info.path).map_err(Error::communication_error)?;
+
         Ok(Psvr {
             inertia_sensor: inertia::Sensor::new(),
             control_device, sensor_device,
         })
-    }
-
-    /// Prints information about the usb device to stdout.
-    pub fn print_information(&self) -> Result<(), Error> {
-        // unimplemented!();
-
-        Ok(())
     }
 
     /// Sends a command.
@@ -117,7 +111,9 @@ impl<'a> Psvr<'a> {
             if bytes_read <= 1 {
                 continue; // We need more than the report ID.
             } if bytes_read != sensor::FRAME_SIZE {
-                panic!("not enough bytes read of sensor readout (expected {} bytes but got {} bytes)", sensor::FRAME_SIZE, bytes_read);
+                return Err(Error::CommunicationError {
+                    message: format!("read psvr sensor frame of {} bytes but should be {} bytes", bytes_read, sensor::FRAME_SIZE),
+                });
             }
 
             let readout = sensor::Readout::read_bytes(&buf)?;
