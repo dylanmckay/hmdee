@@ -2,6 +2,7 @@
 
 #[cfg(feature = "psvr")] pub mod psvr;
 
+use Error;
 use {info, input};
 use core::math;
 
@@ -22,13 +23,13 @@ pub trait HeadMountedDevice {
     /// Updates the headset state from a context.
     ///
     /// This should be called often.
-    fn update(&mut self);
+    fn update(&mut self) -> Result<(), Error>;
 
     /// Powers on the headset.
     ///
     /// **Contract**: If the device is already on, nothing should happen.
-    fn power_on(&mut self);
+    fn power_on(&mut self) -> Result<(), Error>;
 
     /// Powers off the headset.
-    fn power_off(&mut self);
+    fn power_off(&mut self) -> Result<(), Error>;
 }

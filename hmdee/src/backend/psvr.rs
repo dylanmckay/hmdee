@@ -1,3 +1,4 @@
+use Error;
 use backend::HeadMountedDevice;
 
 use core::math;
@@ -92,19 +93,23 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
         &self.headset_properties
     }
 
-    fn update(&mut self) {
-        let sensor_readout = self.psvr.receive_sensor().unwrap();
+    fn update(&mut self) -> Result<(), Error> {
+        let sensor_readout = self.psvr.receive_sensor()?;
         self.latest_sensor_readout = Some(sensor_readout);
+
+        Ok(())
     }
 
-    fn power_on(&mut self) {
-        self.psvr.power_on().unwrap();
-        self.psvr.vr_mode().unwrap();
-        self.psvr.vr_tracking().unwrap();
+    fn power_on(&mut self) -> Result<(), Error> {
+        self.psvr.power_on()?;
+        self.psvr.vr_mode()?;
+        self.psvr.vr_tracking()?;
+
+        Ok(())
     }
 
-    fn power_off(&mut self) {
-        self.psvr.power_off().unwrap();
+    fn power_off(&mut self) -> Result<(), Error> {
+        self.psvr.power_off()
     }
 }
 

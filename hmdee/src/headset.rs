@@ -1,3 +1,4 @@
+use Error;
 use {backend, info, input};
 use core::math;
 
@@ -37,15 +38,15 @@ impl<'context> backend::HeadMountedDevice for Headset<'context> {
         dispatch! { self => properties() }
     }
 
-    fn update(&mut self) {
+    fn update(&mut self) -> Result<(), Error> {
         dispatch! { mut self => update() }
     }
 
-    fn power_on(&mut self) {
+    fn power_on(&mut self) -> Result<(), Error> {
         dispatch! { mut self => power_on() }
     }
 
-    fn power_off(&mut self) {
+    fn power_off(&mut self) -> Result<(), Error> {
         dispatch! { mut self => power_off() }
     }
 }
