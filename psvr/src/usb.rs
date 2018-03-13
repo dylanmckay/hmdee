@@ -21,6 +21,7 @@ pub enum Interface {
     HidControl = 5,
     // FIXME: Does 'VS_' start for Video Stream?
     VideoStreamH264 = 6,
+    // FIXME: BulkIn is not a video stream, remove the prefix.
     VideoStreamBulkIn = 7,
     HidControl2 = 8,
 }
