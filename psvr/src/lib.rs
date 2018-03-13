@@ -1,3 +1,5 @@
+//! PlayStation VR client library.
+
 extern crate hmdee_core;
 
 extern crate ahrs;

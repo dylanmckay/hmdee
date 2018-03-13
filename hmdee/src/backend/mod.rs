@@ -1,6 +1,8 @@
 //! Backends for specific HMD devices.
 
-#[cfg(feature = "psvr")] pub mod psvr;
+#[cfg(feature = "psvr")] mod backend_psvr;
+#[cfg(feature = "psvr")] pub use self::backend_psvr::Psvr;
+#[cfg(feature = "psvr")] pub use psvr;
 
 use Error;
 use {info, input};
