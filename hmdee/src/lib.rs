@@ -15,7 +15,9 @@ mod reexports {
 }
 
 extern crate hidapi;
-#[cfg(feature = "psvr")] extern crate psvr;
+
+// Hide this here because we reexport it inside backend module.
+#[cfg(feature = "psvr")] #[doc(hidden)] pub extern crate psvr;
 
 pub mod backend;
 mod context;

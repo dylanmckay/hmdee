@@ -59,6 +59,13 @@ pub struct Psvr<'hidapi> {
     headset_properties: info::Properties,
 }
 
+impl<'hidapi> Psvr<'hidapi> {
+    /// Gets the underlying PSVR client.
+    pub fn underlying(&self) -> &psvr::Psvr<'hidapi> { &self.psvr }
+    /// Gets the underlying PSVR client.
+    pub fn underlying_mut(&mut self) -> &mut psvr::Psvr<'hidapi> { &mut self.psvr }
+}
+
 impl<'a> HeadMountedDevice for Psvr<'a> {
     fn product_name(&self) -> &'static str {
         "PlayStation VR"

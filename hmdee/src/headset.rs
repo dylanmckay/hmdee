@@ -4,7 +4,7 @@ use core::math;
 
 /// A head mounted device.
 pub enum Headset<'context> {
-    Psvr(backend::psvr::Psvr<'context>),
+    Psvr(backend::Psvr<'context>),
 }
 
 macro_rules! dispatch {
