@@ -91,6 +91,9 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
         let sensor_readout = self.psvr.receive_sensor()?;
         self.latest_sensor_readout = Some(sensor_readout);
 
+        // FIXME: do something with this.
+        // let _ = self.psvr.receive_control()?;
+
         Ok(())
     }
 

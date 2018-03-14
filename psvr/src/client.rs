@@ -90,14 +90,30 @@ impl<'a> Psvr<'a> {
             payload: payload,
         };
 
-        self.send_raw(&command.raw_bytes())
+        self.send_command_raw(&command.raw_bytes())
     }
 
     /// Sends raw data.
-    fn send_raw(&mut self,
-                data: &[u8]) -> Result<(), Error> {
+    pub fn send_command_raw(&mut self, data: &[u8]) -> Result<(), Error> {
         self.control_device.write(&data.to_owned()).map_err(Error::communication_error)?;
+
+        // self.receive_control(100).unwrap();
         Ok(())
+    }
+
+    /// Attempts to receive a response from the control interface.
+    pub fn receive_control(&mut self, size: usize) -> Result<(), Error> {
+        let mut buf: Vec<_> = (0..size).map(|_| 0).collect();
+
+        let bytes_read = self.control_device.read_timeout(&mut buf, 100).map_err(Error::communication_error)?;
+
+        println!("bytes read: {}", bytes_read);
+        if bytes_read > 0 {
+            let raw_bytes = &buf[0..bytes_read];
+            panic!("raw bytes: {:#?}", raw_bytes);
+        } else { // Nothing read.
+            Ok(())
+        }
     }
 
     /// Receives sensor data.
