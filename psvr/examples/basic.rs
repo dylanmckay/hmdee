@@ -1,4 +1,5 @@
 extern crate psvr;
+extern crate failure;
 extern crate hidapi;
 extern crate nalgebra as na;
 extern crate delta;
@@ -15,13 +16,13 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), psvr::Error> {
+fn run() -> Result<(), failure::Error> {
     let hidapi = hidapi::HidApi::new().unwrap();
     let mut timer = delta::Timer::new();
 
     let mut psvr = match psvr::get(&hidapi)? {
         Some(psvr) => psvr,
-        None => return Err("no PSVR devices connected".into()),
+        None => panic!("no PSVR devices connected"),
     };
 
     psvr.power_on()?;
