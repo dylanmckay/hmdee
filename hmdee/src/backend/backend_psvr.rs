@@ -25,7 +25,7 @@ fn psvr_properties() -> info::Properties {
                 recommended_degrees: 68.0,
             },
         },
-        distortion_coefficients: vec![0.22, 0.24],
+        distortion_coefficients: vec![0.247, -0.145, 0.103, 0.795],
         chromatic_aberration_factors: info::ChromaticAberrationFactors::no_adjustments(),
     };
 
