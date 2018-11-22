@@ -163,18 +163,8 @@ impl PartialEq for DisplayInfo {
             }
         } // Rejection criteria end
 
-        // Acceptance criteria begin
-        {
-            // If either display name is a substring of the other, it matches.
-            if  self.monitor_name == other.monitor_name ||
-                self.monitor_name.contains(&other.monitor_name) ||
-                other.monitor_name.contains(&self.monitor_name) {
-                return true;
-            }
-        } // end acceptance criteria
-
-        // No match by now.
-        false
+        // If we got this far, it's a match.
+        true
     }
 }
 
