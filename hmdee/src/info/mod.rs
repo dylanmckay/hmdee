@@ -12,7 +12,7 @@ pub struct Properties {
     /// Information about the headset's visuals.
     pub visuals: Visuals,
     /// How does the display of this.
-    pub display_connector: DisplayConnector,
+    pub display_info: DisplayInfo,
 }
 
 /// Information about the visuals
@@ -36,14 +36,44 @@ pub enum Visuals {
     },
 }
 
-/// A connection method for a display.
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub enum DisplayConnector {
-    /// The display connects via HDMI.
-    Hdmi {
-        /// The monitor name of the VR headset, as reported by HDMI EDID.
-        monitor_name: String,
-    },
+/// Information about a HMD's display.
+///
+/// # Finding the HDMI/VGA port of the HMD
+///
+/// The `DisplayInfo` type implements `Eq`. Any two `DisplayInfo`s can be
+/// compared with one another for equality.
+///
+/// Two display information structures will be considered the same
+/// if and only if they very similar to one another.
+///
+/// Use OS or library calls to enumerate the list of physical displays. Create
+/// a `DisplayInfo` structure out of this. You can then find what
+/// physical display represents the HMD screen by comparing the OS
+/// `DisplayInfo` with the HMD's `DisplayInfo` returned by this library.
+///
+#[derive(Clone, Debug, PartialOrd)]
+pub struct DisplayInfo {
+    /// The monitor name of the VR headset, as reported by HDMI EDID.
+    ///
+    /// This is not necessarily 100% reliable for 1:1 matching against.
+    /// Custom display profiles on each OS can be created by the user,
+    /// possible assigning a different name, usually just adding a suffix
+    /// to the original monitor name. Therefore, it is recommended to
+    /// match monitor names by checking if the actual monitor name includes
+    /// the HMD's monitor name as a substring.
+    pub monitor_name: String,
+    /// The physical size, in millimeters, of the HMD display if known.
+    pub physical_size_millimeters: Option<(u32, u32)>,
+    /// A list of `(width, height)` resolutions the headset is expected
+    /// to support.
+    ///
+    /// This is not necessarily an exhaustive list, but every resolution
+    /// in the list is guaranteed to be a resolution supported by the
+    /// device.
+    ///
+    /// This can be used in HDMI input detection, for determining which
+    /// HDMI port drives the HMD's screens.
+    pub supported_resolutions: Vec<(u32, u32)>,
 }
 
 /// A geometric distance.
@@ -70,6 +100,30 @@ pub struct FieldOfViewAxis {
     pub recommended_degrees: math::Scalar,
 }
 
+impl DisplayInfo {
+    /// Finds the physical monitor handle that represents the HMD's display.
+    ///
+    /// This can be used to find which connected physical monitor on a
+    /// system is the HMD.
+    ///
+    /// Returns `Some(physical monitor)` if the HMD is connected.
+    ///
+    /// Types:
+    ///
+    ///   * `P` - the physical monitor handle type
+    ///   * `I` - an iterator of physical monitors returned by the OS
+    ///   * `F` - a function that builds a `DisplayInfo` for a physical monitor.
+    pub fn find_physical_monitor<P,I,F>(&self,
+                                        monitors: I,
+                                        f: F)
+        -> Option<P>
+        where P: Sized,
+              I: IntoIterator<Item=P>,
+              F: Fn(&P) -> DisplayInfo {
+        monitors.into_iter().find(|monitor| f(monitor) == *self)
+    }
+}
+
 impl Distance {
     /// Creates a new distance from a micrometer measurement.
     // TODO: make this a `const fn` when stable.
@@ -89,3 +143,44 @@ impl Distance {
     pub fn millimeters(&self) -> u64 { self.micrometers() / 1_000 }
 }
 
+impl PartialEq for DisplayInfo {
+    fn eq(&self, other: &Self) -> bool {
+        // Must perform rejection before acceptance.
+
+        // Rejection crtieria start.
+        {
+            match (self.physical_size_millimeters, other.physical_size_millimeters) {
+                // Displays that are different physical sizes cannot be the same.
+                (Some(a), Some(b)) => if a != b { return false },
+                _ => (),
+            }
+
+            // If neither supported resolution list subsumes the other, then
+            // the displays cannot be the same.
+            if !is_subset(&self.supported_resolutions, &other.supported_resolutions) &&
+                !is_subset(&other.supported_resolutions, &self.supported_resolutions) {
+                return false;
+            }
+        } // Rejection criteria end
+
+        // Acceptance criteria begin
+        {
+            // If either display name is a substring of the other, it matches.
+            if  self.monitor_name == other.monitor_name ||
+                self.monitor_name.contains(&other.monitor_name) ||
+                other.monitor_name.contains(&self.monitor_name) {
+                return true;
+            }
+        } // end acceptance criteria
+
+        // No match by now.
+        false
+    }
+}
+
+fn is_subset(a: &[(u32, u32)], subset_of: &[(u32, u32)]) -> bool {
+    a.iter().all(|t| subset_of.contains(t))
+}
+
+
+impl Eq for DisplayInfo { }

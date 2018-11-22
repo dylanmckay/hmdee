@@ -7,12 +7,16 @@ use psvr;
 
 const PSVR_HDMI_MONITOR_NAME: &'static str = "SIE  HMD *08";
 
+const HMD_RESOLUTION_HORIZONTAL: u32 = 1920;
+const HMD_RESOLUTION_VERTICAL: u32 = 1080;
+
+const LENS_RESOLUTION_HORIZONTAL: u32 = HMD_RESOLUTION_HORIZONTAL / 2; // one lens for left, one for right.
+const LENS_RESOLUTION_VERTICAL: u32 = HMD_RESOLUTION_VERTICAL; // both lens cover the full height of the display.
+
 fn psvr_properties() -> info::Properties {
-    const LENS_WIDTH: u32 = 1920 / 2;
-    const DISPLAY_HEIGHT: u32 = 1080;
 
     let lens = info::Lens {
-        resolution: (LENS_WIDTH, DISPLAY_HEIGHT),
+        resolution: (LENS_RESOLUTION_HORIZONTAL, LENS_RESOLUTION_VERTICAL),
         field_of_view: info::FieldOfView {
             horizontal: info::FieldOfViewAxis {
                 minimum_degrees: 100.0,
@@ -43,7 +47,13 @@ fn psvr_properties() -> info::Properties {
     };
 
     info::Properties {
-        display_connector: info::DisplayConnector::Hdmi { monitor_name: PSVR_HDMI_MONITOR_NAME.to_owned() },
+        display_info: info::DisplayInfo {
+            monitor_name: PSVR_HDMI_MONITOR_NAME.to_owned(),
+            physical_size_millimeters: Some((160, 90)),
+            supported_resolutions: vec![
+                (HMD_RESOLUTION_HORIZONTAL, HMD_RESOLUTION_VERTICAL),
+            ],
+        },
         visuals
     }
 }
@@ -123,6 +133,50 @@ fn button_from_readout<F>(readout: &Option<psvr::sensor::Readout>, f: F) -> inpu
     match readout.as_ref() {
         Some(readout) => if f(readout) { input::ButtonState::Pressed } else { input::ButtonState::NotPressed },
         None => input::ButtonState::NotPressed
+    }
+}
+
+#[cfg(test)]
+mod test {
+    mod display_discovery {
+        use super::super::psvr_properties;
+        use info::*;
+
+        // Display information from what the OS reports for the PSVR.
+        fn example_psvr_physical_monitors() -> Vec<DisplayInfo> {
+            vec![
+                // How it appears on my MacOS 10.14 Mojave with
+                // display modes patched to 4:4:4:4 chroma subsampling.
+                DisplayInfo {
+                    monitor_name: "SIE  HMD *08 (with EDID patch)".to_owned(),
+                    physical_size_millimeters: Some((160, 90)),
+                    // FIXME: complete the resolution list.
+                    supported_resolutions: vec![
+                        (1920, 1080),
+                    ],
+                },
+            ]
+        }
+
+        #[test]
+        fn matches_all_known_physical_monitors() {
+            let properties = psvr_properties();
+
+            for physical_monitor in example_psvr_physical_monitors() {
+                assert_eq!(properties.display_info, physical_monitor);
+            }
+        }
+
+        #[test]
+        fn doesnt_match_when_both_physical_sizes_inconsistent() {
+            let properties = psvr_properties();
+
+            for mut physical_monitor in example_psvr_physical_monitors() {
+                physical_monitor.physical_size_millimeters = Some((200, 200));
+
+                assert!(properties.display_info != physical_monitor);
+            }
+        }
     }
 }
 
