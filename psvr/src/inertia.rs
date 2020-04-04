@@ -62,7 +62,7 @@ impl Sensor {
 
     /// Updates the inertia sensor.
     pub fn update(&mut self, instant: &Instant) {
-        let delta = self.timer.mark();
+        let delta = self.timer.mark_secs();
 
         // Change the sample period of the existing Madgwick object.
         // The library doesn't directly support dynamic periods.
