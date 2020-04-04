@@ -29,9 +29,9 @@ fn run() -> Result<(), failure::Error> {
 
     for _ in 0..200 {
         let sensor = psvr.receive_sensor().expect("failed to receive from sensor");
-        let delta = timer.mark();
+        let delta = timer.mark_secs();
 
-        println!("elapsed: {}, orientation: {:?}, buttons: {:?}", delta, psvr.orientation(), sensor.buttons);
+        println!("elapsed: {}s, orientation: {:?}, buttons: {:?}", delta, psvr.orientation(), sensor.buttons);
     }
 
     println!("finished reading from sensors");
