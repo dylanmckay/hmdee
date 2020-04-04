@@ -10,7 +10,7 @@ use byteorder::{WriteBytesExt};
 pub trait Command {
     const ID: u8;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()>;
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()>;
 
     /// Gets the raw bytes that make up the payload.
     fn payload_bytes(&self) -> Vec<u8> {
@@ -74,7 +74,7 @@ pub struct ReadDeviceInfo;
 impl Command for SetPower {
     const ID: u8 = 0x17;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u32::<ByteOrder>(if self.on { 1 } else { 0 })
     }
 }
@@ -82,7 +82,7 @@ impl Command for SetPower {
 impl Command for EnableVrTracking {
     const ID: u8 = 0x11;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u32::<ByteOrder>(0xFFFFFF00)?;
         write.write_u32::<ByteOrder>(0x00000000)?;
         Ok(())
@@ -92,7 +92,7 @@ impl Command for EnableVrTracking {
 impl Command for SetVrMode {
     const ID: u8 = 0x23;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u32::<ByteOrder>(if self.vr_mode { 1 } else { 0 })
     }
 }
@@ -100,7 +100,7 @@ impl Command for SetVrMode {
 impl Command for BoxOff {
     const ID: u8 = 0x13;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u32::<ByteOrder>(1)
     }
 }
@@ -108,7 +108,7 @@ impl Command for BoxOff {
 impl Command for SetCinematicConfiguration {
     const ID: u8 = 0x21;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u8(self.mask)?;
         write.write_u8(self.screen_size)?;
         write.write_u8(self.screen_distance)?;
@@ -125,7 +125,7 @@ impl Command for SetCinematicConfiguration {
 impl Command for SetHmdLeds {
     const ID: u8 = 0x15;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         write.write_u16::<ByteOrder>(self.led_mask)?;
         write.write_all(&self.values)?;
         write.write_all(&self.reserved)
@@ -135,7 +135,7 @@ impl Command for SetHmdLeds {
 impl Command for ReadDeviceInfo {
     const ID: u8 = 0x81;
 
-    fn write_payload(&self, write: &mut Write) -> io::Result<()> {
+    fn write_payload(&self, write: &mut dyn Write) -> io::Result<()> {
         let reserved: [u8; 7] = [0; 7];
         write.write_u8(0x80)?;
         write.write_all(&reserved)

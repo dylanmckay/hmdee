@@ -56,7 +56,7 @@ pub const FRAME_SIZE: usize = 64;
 /// Something that can be read from raw bytes.
 pub trait Readable : Sized {
     /// Reads a new value from a reader.
-    fn read(read: &mut Read) -> Result<Self, Error>;
+    fn read(read: &mut dyn Read) -> Result<Self, Error>;
 
     /// Reads a new value from raw bytes.
     fn read_bytes(raw: &[u8; FRAME_SIZE]) -> Result<Self, Error> {
@@ -144,7 +144,7 @@ impl InertiaInstant {
 }
 
 impl Readable for Readout {
-    fn read(read: &mut Read) -> Result<Self, Error> {
+    fn read(read: &mut dyn Read) -> Result<Self, Error> {
         let buttons = Buttons::read(read)?;
 
         read_reserved(read, 1)?;
@@ -165,7 +165,7 @@ impl Readable for Readout {
 }
 
 /// Reads reserved data.
-fn read_reserved(read: &mut Read, n: usize) -> Result<(), Error> {
+fn read_reserved(read: &mut dyn Read, n: usize) -> Result<(), Error> {
     for _ in 0..n {
         read.read_u8()?;
     }
@@ -174,7 +174,7 @@ fn read_reserved(read: &mut Read, n: usize) -> Result<(), Error> {
 
 
 impl Readable for Buttons {
-    fn read(read: &mut Read) -> Result<Self, Error> {
+    fn read(read: &mut dyn Read) -> Result<Self, Error> {
         let b = read.read_u8()?;
         Ok(Buttons {
             // reserved:  (b & 0b0001) != 0,
@@ -186,7 +186,7 @@ impl Readable for Buttons {
 }
 
 impl Readable for Status {
-    fn read(read: &mut Read) -> Result<Self, Error> {
+    fn read(read: &mut dyn Read) -> Result<Self, Error> {
         let b = read.read_u8()?;
         Ok(Status {
             worn:                (b & (1 << 0)) != 0,
@@ -202,7 +202,7 @@ impl Readable for Status {
 
 impl<T> Readable for na::Vector3<T>
     where T: Copy + Readable + fmt::Debug + cmp::PartialEq + 'static{
-    fn read(read: &mut Read) -> Result<Self, Error> {
+    fn read(read: &mut dyn Read) -> Result<Self, Error> {
         Ok(na::Vector3::new(
             Readable::read(read)?,
             Readable::read(read)?,
@@ -212,7 +212,7 @@ impl<T> Readable for na::Vector3<T>
 }
 
 impl Readable for InertiaInstant {
-    fn read(read: &mut Read) -> Result<Self, Error> {
+    fn read(read: &mut dyn Read) -> Result<Self, Error> {
         let gyroscope_raw = Readable::read(read)?;
         let accelerometer_raw = Readable::read(read)?;
         read_reserved(read, 4)?;
@@ -224,7 +224,7 @@ impl Readable for InertiaInstant {
 macro_rules! impl_readable_primitive {
     ($ty:ident, $read_fn:ident, $byte_order:ty) => {
         impl Readable for $ty {
-            fn read(read: &mut Read) -> Result<Self, Error> {
+            fn read(read: &mut dyn Read) -> Result<Self, Error> {
                 Ok(read.$read_fn::<$byte_order>()?)
             }
         }
@@ -232,7 +232,7 @@ macro_rules! impl_readable_primitive {
 
     ($ty:ident, $read_fn:ident) => {
         impl Readable for $ty {
-            fn read(read: &mut Read) -> Result<Self, Error> {
+            fn read(read: &mut dyn Read) -> Result<Self, Error> {
                 Ok(read.$read_fn()?)
             }
         }
