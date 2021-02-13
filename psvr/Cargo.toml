@@ -8,7 +8,6 @@ description = "Library for interfacing with the PlayStation VR"
 documentation = "http://docs.rs/psvr"
 repository = "https://github.com/dylanmckay/hmdee"
 
-readme = "README.md"
 license = "MIT"
 
 categories = ["game-engines"]
