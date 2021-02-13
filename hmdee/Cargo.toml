@@ -8,10 +8,6 @@ default = ["psvr"]
 
 [dependencies]
 hmdee_core = { path = "../core", version = "0.1.0" }
-
-# Required to work around missing interface number support on Mac.
-# Going back to crates.io blocked on this pull request.
-# https://github.com/signal11/hidapi/pull/380
-hidapi = { git = "https://github.com/dylanmckay/hidapi-rs.git", branch = "mac-hid-interface-support" }
+hidapi = "1.2"
 psvr = { path = "../psvr", optional = true }
 

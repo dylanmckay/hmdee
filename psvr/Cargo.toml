@@ -15,13 +15,10 @@ keywords = ["vr", "virtual", "reality", "playstation", "hmd"]
 
 [dependencies]
 hmdee_core = { path = "../core", version = "0.1" }
-ahrs = { version = "0.2.1", default-features = false }
-byteorder = "1.3"
+ahrs = { version = "0.3", default-features = false }
+byteorder = "1.4"
 delta = "0.2"
 failure = "0.1"
-# Required to work around missing interface number support on Mac.
-# Going back to crates.io blocked on this pull request.
-# https://github.com/signal11/hidapi/pull/380
-hidapi = { git = "https://github.com/dylanmckay/hidapi-rs.git", branch = "mac-hid-interface-support" }
-nalgebra = "0.18"
+hidapi = "1.2"
+nalgebra = "0.21"
 

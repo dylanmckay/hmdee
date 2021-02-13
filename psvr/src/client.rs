@@ -8,11 +8,11 @@ use na;
 /// A PSVR device connected via USB.
 ///
 /// * `'a'` is the lifetime
-pub struct Psvr<'a> {
+pub struct Psvr {
     /// The USB HID control interface.
-    control_device: hidapi::HidDevice<'a>,
+    control_device: hidapi::HidDevice,
     /// The USB HID sensor interface.
-    sensor_device: hidapi::HidDevice<'a>,
+    sensor_device: hidapi::HidDevice,
     /// The inertia sensor.
     inertia_sensor: inertia::Sensor,
 }
@@ -32,9 +32,9 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = Result<Psvr<'a>, Error>;
+    type Item = Result<Psvr, Error>;
 
-    fn next(&mut self) -> Option<Result<Psvr<'a>, Error>> {
+    fn next(&mut self) -> Option<Result<Psvr, Error>> {
         loop {
             match self.psvr_infos.next() {
                 Some(psvr_info) => {
@@ -55,17 +55,17 @@ pub fn get(hidapi: &hidapi::HidApi)
     }
 }
 
-impl<'a> Psvr<'a> {
+impl Psvr {
     /// Connects to a discovered PSVR device.
-    fn connect(psvr_info: &discover::PsvrInfo,
-               hidapi: &'a hidapi::HidApi) -> Result<Self, Error> {
+    fn connect<'a>(psvr_info: &discover::PsvrInfo,
+                   hidapi: &'a hidapi::HidApi) -> Result<Self, Error> {
         let control_device_info = psvr_info.interface_device_info(usb::Interface::HidControl)
             .ok_or_else(|| Error::CommunicationError { message: "PSVR does not expose an HID control interface".to_owned() })?;
         let sensor_device_info = psvr_info.interface_device_info(usb::Interface::HidSensor)
             .ok_or_else(|| Error::CommunicationError { message: "PSVR does not expose an HID sensor interface".to_owned() })?;
 
-        let control_device = hidapi.open_path(&control_device_info.path).map_err(Error::communication_error)?;
-        let sensor_device = hidapi.open_path(&sensor_device_info.path).map_err(Error::communication_error)?;
+        let control_device = hidapi.open_path(&control_device_info.path()).map_err(Error::communication_error)?;
+        let sensor_device = hidapi.open_path(&sensor_device_info.path()).map_err(Error::communication_error)?;
 
         Ok(Psvr {
             inertia_sensor: inertia::Sensor::new(),
@@ -178,7 +178,7 @@ mod discover {
     #[derive(Debug)]
     pub struct InterfaceInfo {
         pub interface: usb::Interface,
-        pub device_info: hidapi::HidDeviceInfo,
+        pub device_info: hidapi::DeviceInfo,
     }
 
     #[derive(Debug)]
@@ -191,15 +191,15 @@ mod discover {
     // FIXME: currently this assumes that only one PSVR is plugged in.
     //        Need to group interfaces by USB device.
     pub fn all(hidapi: &hidapi::HidApi) -> Result<::std::vec::IntoIter<PsvrInfo>, Error> {
-        let interface_devices: Vec<_> = hidapi.devices().into_iter().filter(|device_info| {
-            device_info.vendor_id == usb::PSVR_VID && device_info.product_id == usb::PSVR_PID
+        let interface_devices: Vec<_> = hidapi.device_list().into_iter().filter(|device_info| {
+            device_info.vendor_id() == usb::PSVR_VID && device_info.product_id() == usb::PSVR_PID
         }).collect();
 
         if !interface_devices.is_empty() {
             let interfaces: Result<Vec<_>, Error> = interface_devices.into_iter().map(|hid_device| {
                 Ok(InterfaceInfo {
-                    interface: usb::Interface::from_i32(hid_device.interface_number)?,
-                    device_info: hid_device,
+                    interface: usb::Interface::from_i32(hid_device.interface_number())?,
+                    device_info: hid_device.clone(),
                 })
             }).collect();
             let interfaces = interfaces?;
@@ -212,7 +212,7 @@ mod discover {
 
     impl PsvrInfo {
         /// Gets the associated HIDAPI device for a usb interface.
-        pub fn interface_device_info(&self, interface: usb::Interface) -> Option<&hidapi::HidDeviceInfo> {
+        pub fn interface_device_info(&self, interface: usb::Interface) -> Option<&hidapi::DeviceInfo> {
             self.interfaces.iter().filter_map(|i| if i.interface == interface { Some(&i.device_info) } else { None }).next()
         }
     }

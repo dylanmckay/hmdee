@@ -59,9 +59,9 @@ fn psvr_properties() -> info::Properties {
 }
 
 /// A PlayStation VR headset.
-pub struct Psvr<'hidapi> {
+pub struct Psvr {
     /// The underlying PSVR structure.
-    psvr: psvr::Psvr<'hidapi>,
+    psvr: psvr::Psvr,
 
     /// The latest readout from the PSVR sensors.
     latest_sensor_readout: Option<psvr::sensor::Readout>,
@@ -69,14 +69,14 @@ pub struct Psvr<'hidapi> {
     headset_properties: info::Properties,
 }
 
-impl<'hidapi> Psvr<'hidapi> {
+impl Psvr {
     /// Gets the underlying PSVR client.
-    pub fn underlying(&self) -> &psvr::Psvr<'hidapi> { &self.psvr }
+    pub fn underlying(&self) -> &psvr::Psvr { &self.psvr }
     /// Gets the underlying PSVR client.
-    pub fn underlying_mut(&mut self) -> &mut psvr::Psvr<'hidapi> { &mut self.psvr }
+    pub fn underlying_mut(&mut self) -> &mut psvr::Psvr { &mut self.psvr }
 }
 
-impl<'a> HeadMountedDevice for Psvr<'a> {
+impl HeadMountedDevice for Psvr {
     fn product_name(&self) -> &'static str {
         "PlayStation VR"
     }
@@ -117,8 +117,8 @@ impl<'a> HeadMountedDevice for Psvr<'a> {
     }
 }
 
-impl<'context> From<psvr::Psvr<'context>> for Psvr<'context> {
-    fn from(psvr: psvr::Psvr<'context>) -> Self {
+impl From<psvr::Psvr> for Psvr {
+    fn from(psvr: psvr::Psvr) -> Self {
         Psvr {
             latest_sensor_readout: None,
             psvr,

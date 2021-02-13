@@ -4,19 +4,23 @@ use core::math;
 
 /// A head mounted device.
 pub enum Headset<'context> {
-    Psvr(backend::Psvr<'context>),
+    Psvr(backend::Psvr),
+    #[doc(hidden)]
+    Phantom(std::marker::PhantomData<&'context ()>),
 }
 
 macro_rules! dispatch {
     { $self:expr => $method:ident ( $( $arg:expr ),* ) } => {
         match *$self {
             Headset::Psvr(ref psvr) => psvr . $method ( $( $arg ),* ),
+            Headset::Phantom(..) => unreachable!(),
         }
     };
 
     { mut $self:expr => $method:ident ( $( $arg:expr ),* ) } => {
         match *$self {
             Headset::Psvr(ref mut psvr) => psvr . $method ( $( $arg ),* ),
+            Headset::Phantom(..) => unreachable!(),
         }
     };
 }
