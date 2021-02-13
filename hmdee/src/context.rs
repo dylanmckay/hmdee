@@ -1,4 +1,4 @@
-use Error;
+use crate::Error;
 use hidapi;
 
 /// Provides access to system resources.

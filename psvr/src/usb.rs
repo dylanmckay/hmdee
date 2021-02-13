@@ -28,7 +28,7 @@ pub enum Interface {
 
 impl Interface {
     pub fn from_i32(value: i32) -> Result<Self, hmdee_core::Error> {
-        use usb::Interface::*;
+        use crate::usb::Interface::*;
 
         match value {
             0 => Ok(Audio3D),

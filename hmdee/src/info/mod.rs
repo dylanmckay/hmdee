@@ -4,7 +4,7 @@ pub use self::lens::{ChromaticAberrationFactors, Lens};
 
 mod lens;
 
-use core::math;
+use crate::core::math;
 
 /// Information about a VR headset.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]

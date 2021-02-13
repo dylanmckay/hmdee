@@ -1,5 +1,4 @@
-use info;
-use core::math;
+use crate::{core::math, info};
 
 /// An individual lens.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]

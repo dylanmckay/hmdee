@@ -4,9 +4,7 @@
 #[cfg(feature = "psvr")] pub use self::backend_psvr::Psvr;
 #[cfg(feature = "psvr")] pub use psvr;
 
-use Error;
-use {info, input};
-use core::math;
+use crate::{core::math, info, input, Error};
 
 /// A head mounted device.
 pub trait HeadMountedDevice {

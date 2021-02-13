@@ -1,4 +1,4 @@
-use {command, inertia, protocol, sensor, usb};
+use crate::{command, inertia, protocol, sensor, usb};
 use hmdee_core::{math, Error};
 
 use std;
@@ -168,7 +168,7 @@ impl Psvr {
 
 mod discover {
     use hmdee_core::Error;
-    use usb;
+    use crate::usb;
 
     use hidapi;
 

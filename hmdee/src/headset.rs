@@ -1,6 +1,4 @@
-use Error;
-use {backend, info, input};
-use core::math;
+use crate::{core::math, backend, info, input, Error};
 
 /// A head mounted device.
 pub enum Headset<'context> {

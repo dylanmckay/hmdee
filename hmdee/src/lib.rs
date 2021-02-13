@@ -9,7 +9,7 @@ pub use self::discover::headsets;
 
 // Show reexported crates like normal modules in Rustdoc.
 pub use self::reexports::{core};
-pub use core::Error;
+pub use crate::core::Error;
 mod reexports {
     pub extern crate hmdee_core as core;
 }

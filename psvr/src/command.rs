@@ -3,7 +3,7 @@
 use std::io::prelude::*;
 use std::io;
 
-use usb::ByteOrder;
+use crate::usb::ByteOrder;
 use byteorder::{WriteBytesExt};
 
 /// A command that can be sent to the PSVR.

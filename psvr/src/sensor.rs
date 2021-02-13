@@ -43,7 +43,7 @@
 
 use hmdee_core::Error;
 use hmdee_core::math::Scalar;
-use usb::ByteOrder;
+use crate::usb::ByteOrder;
 
 use std::io::prelude::*;
 use std::{cmp, fmt, io};

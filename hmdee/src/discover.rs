@@ -1,4 +1,4 @@
-use {Context, Error, Headset};
+use crate::{Context, Error, Headset};
 use psvr;
 
 /// Gets an iterator over all connected headsets.

@@ -1,8 +1,5 @@
-use Error;
-use backend::HeadMountedDevice;
-
-use core::math;
-use {info, input};
+use crate::{core::math, info, input, Error};
+use crate::backend::HeadMountedDevice;
 use psvr;
 
 const PSVR_HDMI_MONITOR_NAME: &'static str = "SIE  HMD *08";
@@ -140,7 +137,7 @@ fn button_from_readout<F>(readout: &Option<psvr::sensor::Readout>, f: F) -> inpu
 mod test {
     mod display_discovery {
         use super::super::psvr_properties;
-        use info::*;
+        use crate::info::*;
 
         // Display information from what the OS reports for the PSVR.
         fn example_psvr_physical_monitors() -> Vec<DisplayInfo> {
