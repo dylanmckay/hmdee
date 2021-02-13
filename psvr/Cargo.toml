@@ -1,12 +1,12 @@
 [package]
 name = "psvr"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Dylan McKay <me@dylanmckay.io>"]
 edition = "2018"
 
 description = "Library for interfacing with the PlayStation VR"
 documentation = "http://docs.rs/psvr"
-repository = "https://github.com/dylanmckay/psvr"
+repository = "https://github.com/dylanmckay/hmdee"
 
 readme = "README.md"
 license = "MIT"

@@ -4,11 +4,17 @@ version = "0.1.0"
 authors = ["Dylan McKay <me@dylanmckay.io>"]
 edition = "2018"
 
+description = "A VR headset library, supporting PSVR"
+repository = "https://github.com/dylanmckay/hmdee"
+documentation = "https://docs.rs/hmdee"
+
+license = "MIT"
+
 [features]
 default = ["psvr"]
 
 [dependencies]
 hmdee_core = { path = "../core", version = "0.1.0" }
 hidapi = "1.2"
-psvr = { path = "../psvr", optional = true }
+psvr = { path = "../psvr", version = "0.3.0", optional = true }
 

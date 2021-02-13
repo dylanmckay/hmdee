@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["Dylan McKay <me@dylanmckay.io>"]
 edition = "2018"
 
+description = "A thin platform library for VR headset backends"
+repository = "https://github.com/dylanmckay/hmdee"
+documentation = "https://docs.rs/hmdee_core"
+
+license = "MIT"
+
 [dependencies]
 failure = "0.1"
 failure_derive = "0.1"
